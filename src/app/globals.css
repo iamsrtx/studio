@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,23 +9,23 @@ body {
 
 @layer base {
   :root {
-    --background: 45 100% 97%; /* Very pale yellow */
-    --foreground: 45 10% 20%; /* Dark, slightly warm gray for text */
+    --background: 0 0% 97%; /* Very light gray / off-white */
+    --foreground: 0 0% 20%; /* Neutral dark gray for text */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 45 10% 20%; /* Dark, slightly warm gray */
+    --card-foreground: 0 0% 20%; /* Neutral dark gray */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 45 10% 20%;
+    --popover-foreground: 0 0% 20%; /* Neutral dark gray */
 
     --primary: 48 96% 50%; /* Vibrant yellow (e.g., #FFC107) */
-    --primary-foreground: 45 10% 10%; /* Very dark gray/black for text on primary */
+    --primary-foreground: 0 0% 10%; /* Very dark neutral gray for text on primary */
 
     --secondary: 48 90% 85%; /* Lighter yellow */
     --secondary-foreground: 48 96% 40%; /* Darker yellow for text on secondary */
 
-    --muted: 48 60% 85%; /* Muted yellow-gray */
-    --muted-foreground: 45 10% 45%; /* Muted text color */
+    --muted: 0 0% 85%; /* Neutral muted gray */
+    --muted-foreground: 0 0% 45%; /* Neutral muted text color */
 
     --accent: 36 100% 55%; /* Orange (e.g., #FFA726) */
     --accent-foreground: 0 0% 100%; /* White for text on accent */
@@ -32,8 +33,8 @@ body {
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 48 80% 88%; /* Light yellow-gray border */
-    --input: 48 80% 88%; /* Light yellow-gray input */
+    --border: 0 0% 88%; /* Neutral light gray border */
+    --input: 0 0% 88%; /* Neutral light gray input */
     --ring: 48 96% 50%; /* Primary yellow for rings */
 
     --radius: 0.5rem;
@@ -56,7 +57,6 @@ body {
   }
 
   .dark {
-    /* Keeping dark theme somewhat similar for now, can be adjusted to a yellow dark theme if needed */
     --background: 220 10% 10%;
     --foreground: 0 0% 98%;
 
@@ -67,7 +67,7 @@ body {
     --popover-foreground: 0 0% 98%;
 
     --primary: 48 85% 55%; /* Dark mode friendly yellow */
-    --primary-foreground: 45 10% 10%;
+    --primary-foreground: 0 0% 10%; /* Very dark neutral gray for text on primary */
 
     --secondary: 48 70% 25%; /* Darker yellow-ish secondary */
     --secondary-foreground: 0 0% 98%;
