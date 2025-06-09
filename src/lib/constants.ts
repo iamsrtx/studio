@@ -1,3 +1,4 @@
+
 import type { FacilityType, StressLevel, UserRole, StressLevelOption, ShipmentLeg } from './types';
 
 export const USER_ROLES: UserRole[] = ['Ops', 'FacilityHead', 'Administrator'];
@@ -31,4 +32,4 @@ export const STRESS_LEVELS_MAP: Record<FacilityType, StressLevelOption[]> = {
   ],
 };
 
-export const APP_NAME = "StressLess Facility Manager";
+export const APP_NAME = "XB Stress Facility";

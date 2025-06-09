@@ -1,10 +1,12 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProvider } from '@/contexts/AppContext';
 import { Toaster } from "@/components/ui/toaster";
+import { APP_NAME } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: 'StressLess Facility Manager',
+  title: APP_NAME,
   description: 'Manage facility stress marking efficiently.',
 };
 

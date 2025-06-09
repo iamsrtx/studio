@@ -1,7 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,7 +12,6 @@ import { useAppContext } from '@/contexts/AppContext';
 import { MOCK_USERS } from '@/lib/data';
 import type { UserRole } from '@/lib/types';
 import { APP_NAME } from '@/lib/constants';
-import { Building } from 'lucide-react';
 
 export default function LoginPage() {
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -28,8 +29,15 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Building className="h-8 w-8" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
+            <Image 
+              src="/xb-logo.png" 
+              alt="XB Stress Facility Logo" 
+              width={40} 
+              height={40} 
+              className="h-10 w-10"
+              data-ai-hint="logo brand"
+            />
           </div>
           <CardTitle className="text-3xl font-headline">{APP_NAME}</CardTitle>
           <CardDescription>Select a user profile to continue</CardDescription>

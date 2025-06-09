@@ -1,10 +1,12 @@
+
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { APP_NAME } from '@/lib/constants';
-import { Building, LogOut, UserCircle, Menu } from 'lucide-react';
+import { LogOut, UserCircle, Menu } from 'lucide-react';
 import { MOCK_USERS } from '@/lib/data';
 import {
   DropdownMenu,
@@ -32,7 +34,14 @@ export default function Header() {
             </Button>
           )}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Building className="h-7 w-7 text-primary" />
+            <Image 
+              src="/xb-logo.png" 
+              alt="XB Stress Facility Logo" 
+              width={28} 
+              height={28} 
+              className="h-7 w-7"
+              data-ai-hint="logo brand"
+            />
             <span className="text-xl font-semibold font-headline">{APP_NAME}</span>
           </Link>
         </div>
