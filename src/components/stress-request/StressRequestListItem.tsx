@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -20,7 +21,8 @@ interface StressRequestListItemProps {
 export default function StressRequestListItem({ request, currentUserRole }: StressRequestListItemProps) {
   const { updateStressRequestStatus, getUserById } = useAppContext();
   const [adminComments, setAdminComments] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const submittedByUser = getUserById(request.submittedByUserId);
@@ -31,10 +33,19 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
     try {
       await updateStressRequestStatus(request.id, status, adminComments);
       toast({ title: `Request ${status.toLowerCase()}`, description: `Request ID ${request.id} has been ${status.toLowerCase()}.`});
-      setIsDialogOpen(false);
+      if (status === 'Approved') {
+        setIsApproveDialogOpen(false);
+      } else {
+        setIsRejectDialogOpen(false);
+      }
       setAdminComments(''); // Reset comments
     } catch (error) {
       toast({ title: "Error", description: `Failed to update request status.`, variant: "destructive" });
+      if (status === 'Approved') {
+        setIsApproveDialogOpen(false);
+      } else {
+        setIsRejectDialogOpen(false);
+      }
     }
   };
 
@@ -96,7 +107,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       </CardContent>
       {currentUserRole === 'Administrator' && request.status === 'Pending' && (
         <CardFooter className="flex justify-end gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">Reject</Button>
             </DialogTrigger>
@@ -118,7 +129,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
              <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Approve</Button>
              </DialogTrigger>
@@ -155,3 +166,4 @@ const InfoItem: React.FC<{icon: React.ElementType, label: string, value: string,
     </div>
   </div>
 );
+
