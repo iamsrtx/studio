@@ -4,11 +4,11 @@ import { FACILITY_TYPE_TO_SHIPMENT_LEG } from './constants';
 
 export const MOCK_USERS: User[] = [
   { id: 'user-ops-1', name: 'Subham', email: 'subham.ops@example.com', role: 'Ops' },
-  { id: 'user-fh-fm', name: 'Raman', email: 'raman.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-1' },
+  { id: 'user-fh-fm', name: 'Parag', email: 'parag.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-1' },
   { id: 'user-fh-lm', name: 'Ankush', email: 'ankush.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-2' },
   { id: 'user-fh-rto', name: 'Priya', email: 'priya.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-3' },
   { id: 'user-fh-rvp', name: 'Mohan', email: 'mohan.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-4' },
-  { id: 'user-admin-1', name: 'Parag', email: 'parag.admin@example.com', role: 'Administrator' },
+  { id: 'user-admin-1', name: 'Raman', email: 'raman.admin@example.com', role: 'Administrator' },
 ];
 
 export const MOCK_FACILITIES: Facility[] = [
@@ -16,7 +16,7 @@ export const MOCK_FACILITIES: Facility[] = [
   { id: 'facility-2', name: 'South Hub - LM Delivery', type: 'LM Delivery', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['LM Delivery'], address: '456 South Ave, Anytown', assignedHeadId: 'user-fh-lm' },
   { id: 'facility-3', name: 'East Wing - RTO/DTO', type: 'RTO/DTO', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['RTO/DTO'], address: '789 East Rd, Anytown', assignedHeadId: 'user-fh-rto' },
   { id: 'facility-4', name: 'West End - RVP Facility', type: 'RVP Facility', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['RVP Facility'], address: '101 West Ln, Anytown', assignedHeadId: 'user-fh-rvp' },
-  { id: 'facility-5', name: 'Central Depot - FM Pickup', type: 'FM Pickup', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['FM Pickup'], address: '202 Center Blvd, Anytown' }, // This one has no assigned head, which is fine.
+  { id: 'facility-5', name: 'Central Depot - FM Pickup', type: 'FM Pickup', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['FM Pickup'], address: '202 Center Blvd, Anytown' },
 ];
 
 export const MOCK_ROUTES: Route[] = [
@@ -43,11 +43,11 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     stressLevel: 'Route',
     routeId: 'route-fm-1',
     routeName: 'FM Route Alpha',
-    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 5,
     reason: 'High volume due to peak season.',
-    submittedByUserId: 'user-fh-fm', // Updated from user-fh-1
-    submittedByName: 'Raman', // Updated from Alex FacilityHead
+    submittedByUserId: 'user-fh-fm', 
+    submittedByName: 'Parag', 
     submissionDate: new Date().toISOString(),
     status: 'Pending',
   },
@@ -59,14 +59,14 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     stressLevel: 'Subcluster',
     subclusterId: 'sc-south',
     subclusterName: 'South Subcluster',
-    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 7,
     reason: 'Manpower shortage.',
     submittedByUserId: 'user-ops-1',
-    submittedByName: 'Subham', // Updated from Sam Operations
-    submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    submittedByName: 'Subham', 
+    submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), 
     status: 'Approved',
-    adminApproverId: 'user-admin-1', // Admin ID is fine, name will be picked up as Parag
+    adminApproverId: 'user-admin-1', 
     adminComments: 'Approved due to critical manpower issues.',
     approvalDate: new Date().toISOString(),
   },
@@ -75,16 +75,17 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     facilityId: 'facility-3',
     facilityName: 'East Wing - RTO/DTO',
     facilityType: 'RTO/DTO',
-    stressLevel: 'Pincode', // No route/subcluster for Pincode
+    stressLevel: 'Pincode', 
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
     reason: 'System outage affecting processing.',
-    submittedByUserId: 'user-fh-rto', // Updated from user-fh-2
-    submittedByName: 'Priya', // Updated from Jordan FacilityHead
+    submittedByUserId: 'user-fh-rto', 
+    submittedByName: 'Priya', 
     submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'Rejected',
-    adminApproverId: 'user-admin-1', // Admin ID is fine, name will be picked up as Parag
+    adminApproverId: 'user-admin-1', 
     adminComments: 'System outage resolved, stress marking not required.',
     approvalDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
+
