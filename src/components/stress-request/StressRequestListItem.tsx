@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { StressRequest, UserRole } from '@/lib/types';
 import { useAppContext } from '@/contexts/AppContext';
-import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface StressRequestListItemProps {
@@ -38,7 +38,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       } else {
         setIsRejectDialogOpen(false);
       }
-      setAdminComments(''); // Reset comments
+      setAdminComments(''); 
     } catch (error) {
       toast({ title: "Error", description: `Failed to update request status.`, variant: "destructive" });
       if (status === 'Approved') {
@@ -51,9 +51,9 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
 
   const getStatusBadgeVariant = (status: StressRequest['status']) => {
     switch (status) {
-      case 'Approved': return 'default'; // default is primary, which is blue
+      case 'Approved': return 'default'; 
       case 'Rejected': return 'destructive';
-      case 'Pending': return 'secondary'; // secondary is gray
+      case 'Pending': return 'secondary'; 
       default: return 'outline';
     }
   };
@@ -85,6 +85,8 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <InfoItem icon={Building} label="Facility Type" value={request.facilityType} />
           <InfoItem icon={Layers} label="Stress Level" value={request.stressLevel} />
+          {request.routeName && <InfoItem icon={MapPinned} label="Route" value={request.routeName} />}
+          {request.subclusterName && <InfoItem icon={Boxes} label="Subcluster" value={request.subclusterName} />}
           <InfoItem icon={CalendarDays} label="Start Date" value={format(parseISO(request.startDate), 'PPP')} />
           <InfoItem icon={CalendarDays} label="Extension" value={`${request.extensionDays} days`} />
           <InfoItem icon={User} label="Submitted By" value={submittedByUser?.name || request.submittedByName} />
@@ -166,4 +168,3 @@ const InfoItem: React.FC<{icon: React.ElementType, label: string, value: string,
     </div>
   </div>
 );
-

@@ -1,4 +1,5 @@
-import type { User, Facility, StressRequest, FacilityType } from './types';
+
+import type { User, Facility, StressRequest, FacilityType, Route, Subcluster } from './types';
 import { FACILITY_TYPE_TO_SHIPMENT_LEG } from './constants';
 
 export const MOCK_USERS: User[] = [
@@ -16,6 +17,21 @@ export const MOCK_FACILITIES: Facility[] = [
   { id: 'facility-5', name: 'Central Depot - FM Pickup', type: 'FM Pickup', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['FM Pickup'], address: '202 Center Blvd, Anytown' },
 ];
 
+export const MOCK_ROUTES: Route[] = [
+  { id: 'route-fm-1', name: 'FM Route Alpha' },
+  { id: 'route-fm-2', name: 'FM Route Beta' },
+  { id: 'route-rto-1', name: 'RTO Route Gamma' },
+  { id: 'route-rto-2', name: 'RTO Route Delta' },
+];
+
+export const MOCK_SUBCLUSTERS: Subcluster[] = [
+  { id: 'sc-central', name: 'Central Subcluster' },
+  { id: 'sc-north', name: 'North Subcluster' },
+  { id: 'sc-south', name: 'South Subcluster' },
+  { id: 'sc-east', name: 'East Subcluster' },
+  { id: 'sc-west', name: 'West Subcluster' },
+];
+
 export const MOCK_STRESS_REQUESTS: StressRequest[] = [
   {
     id: 'req-1',
@@ -23,6 +39,8 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     facilityName: 'North Hub - FM Pickup',
     facilityType: 'FM Pickup',
     stressLevel: 'Route',
+    routeId: 'route-fm-1',
+    routeName: 'FM Route Alpha',
     startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
     extensionDays: 5,
     reason: 'High volume due to peak season.',
@@ -36,7 +54,9 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     facilityId: 'facility-2',
     facilityName: 'South Hub - LM Delivery',
     facilityType: 'LM Delivery',
-    stressLevel: 'Pincode',
+    stressLevel: 'Subcluster',
+    subclusterId: 'sc-south',
+    subclusterName: 'South Subcluster',
     startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
     extensionDays: 7,
     reason: 'Manpower shortage.',
@@ -53,7 +73,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     facilityId: 'facility-3',
     facilityName: 'East Wing - RTO/DTO',
     facilityType: 'RTO/DTO',
-    stressLevel: 'Pincode',
+    stressLevel: 'Pincode', // No route/subcluster for Pincode
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
     reason: 'System outage affecting processing.',

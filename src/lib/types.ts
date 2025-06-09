@@ -1,3 +1,4 @@
+
 export type UserRole = 'Ops' | 'FacilityHead' | 'Administrator';
 
 export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
@@ -17,7 +18,7 @@ export interface Facility {
   type: FacilityType;
   shipmentLeg: ShipmentLeg;
   address: string;
-  assignedHeadId?: string; 
+  assignedHeadId?: string;
   coLocatedWith?: string; // ID of another facility if co-located
 }
 
@@ -29,12 +30,28 @@ export interface User {
   assignedFacilityId?: string; // For FacilityHead
 }
 
+export interface Route {
+  id: string;
+  name: string;
+  // facilityType?: FacilityType; // Could be used for filtering if routes are type-specific
+}
+
+export interface Subcluster {
+  id: string;
+  name: string;
+  // facilityType?: FacilityType; // Could be used for filtering if subclusters are type-specific
+}
+
 export interface StressRequest {
   id: string;
   facilityId: string;
   facilityName: string;
   facilityType: FacilityType;
   stressLevel: StressLevel;
+  routeId?: string;
+  routeName?: string;
+  subclusterId?: string;
+  subclusterName?: string;
   startDate: string; // ISO string
   extensionDays: number;
   reason?: string;

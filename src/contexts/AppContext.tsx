@@ -1,9 +1,10 @@
+
 'use client';
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { User, Facility, StressRequest, UserRole, FacilityType } from '@/lib/types';
-import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS } from '@/lib/data';
+import type { User, Facility, StressRequest, UserRole, FacilityType, Route, Subcluster } from '@/lib/types';
+import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS, MOCK_ROUTES, MOCK_SUBCLUSTERS } from '@/lib/data';
 import { suggestStressReason as suggestStressReasonFlow } from '@/ai/flows/suggest-stress-reason';
 import { useRouter } from 'next/navigation';
 
@@ -11,6 +12,8 @@ interface AppContextType {
   currentUser: User | null;
   currentRole: UserRole | null;
   facilities: Facility[];
+  routes: Route[];
+  subclusters: Subcluster[];
   stressRequests: StressRequest[];
   login: (userId: string) => void;
   logout: () => void;
@@ -20,6 +23,8 @@ interface AppContextType {
   fetchAiReason: (facilityType: FacilityType) => Promise<string>;
   getFacilityById: (id: string) => Facility | undefined;
   getUserById: (id: string) => User | undefined;
+  getRouteById: (id: string) => Route | undefined;
+  getSubclusterById: (id: string) => Subcluster | undefined;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -28,12 +33,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentRole, setCurrentRole] = useState<UserRole | null>(null);
   const [facilities, setFacilities] = useState<Facility[]>(MOCK_FACILITIES);
+  const [routes, setRoutes] = useState<Route[]>(MOCK_ROUTES);
+  const [subclusters, setSubclusters] = useState<Subcluster[]>(MOCK_SUBCLUSTERS);
   const [stressRequests, setStressRequests] = useState<StressRequest[]>(MOCK_STRESS_REQUESTS);
   const [isLoadingAiReason, setIsLoadingAiReason] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Persist/retrieve minimal auth state (e.g., userId) for demo purposes
     const storedUserId = localStorage.getItem('stressless-userId');
     if (storedUserId) {
       const user = MOCK_USERS.find(u => u.id === storedUserId);
@@ -109,6 +115,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const getFacilityById = (id: string) => facilities.find(f => f.id === id);
   const getUserById = (id: string) => MOCK_USERS.find(u => u.id === id);
+  const getRouteById = (id: string) => routes.find(r => r.id === id);
+  const getSubclusterById = (id: string) => subclusters.find(sc => sc.id === id);
 
 
   return (
@@ -117,6 +125,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         currentRole,
         facilities,
+        routes,
+        subclusters,
         stressRequests,
         login,
         logout,
@@ -126,6 +136,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchAiReason,
         getFacilityById,
         getUserById,
+        getRouteById,
+        getSubclusterById,
       }}
     >
       {children}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,6 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { DatePicker } from '@/components/ui/date-picker';
 import FacilitySelector from './FacilitySelector';
 import StressLevelSelector from './StressLevelSelector';
+import RouteSelector from './RouteSelector';
+import SubclusterSelector from './SubclusterSelector';
 import ReasonSuggestion from './ReasonSuggestion';
 import { useAppContext } from '@/contexts/AppContext';
 import type { Facility, FacilityType, StressLevel, User } from '@/lib/types';
@@ -23,7 +26,7 @@ interface StressRequestFormProps {
 }
 
 export default function StressRequestForm({ onSubmitSuccess }: StressRequestFormProps) {
-  const { currentUser, facilities, addStressRequest, getFacilityById } = useAppContext();
+  const { currentUser, facilities, addStressRequest, getFacilityById, getRouteById, getSubclusterById } = useAppContext();
   const { toast } = useToast();
   const [selectedFacility, setSelectedFacility] = useState<Facility | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,11 +36,15 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     defaultValues: {
       facilityId: currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '',
       stressLevel: undefined,
+      routeId: undefined,
+      subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
       reason: '',
     },
   });
+
+  const watchedStressLevel = form.watch('stressLevel');
 
   useEffect(() => {
     if (currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId) {
@@ -49,13 +56,44 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     }
   }, [currentUser, getFacilityById, form]);
 
+  useEffect(() => {
+    const stressLevelValue = watchedStressLevel as string | undefined; // Cast for includes
+    if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('route')) {
+      form.setValue('routeId', undefined);
+      if(form.formState.dirtyFields.routeId) form.clearErrors('routeId');
+    }
+    if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('subcluster')) {
+      form.setValue('subclusterId', undefined);
+      if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId');
+    }
+  }, [watchedStressLevel, form]);
+
   const handleFacilityChange = (facilityId: string) => {
     const facility = getFacilityById(facilityId);
     setSelectedFacility(facility);
     form.setValue('facilityId', facilityId);
-    form.setValue('stressLevel', undefined); // Reset stress level when facility changes
+    form.setValue('stressLevel', undefined); 
+    form.setValue('routeId', undefined);
+    form.setValue('subclusterId', undefined);
     form.clearErrors('stressLevel');
+    form.clearErrors('routeId');
+    form.clearErrors('subclusterId');
   };
+  
+  const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
+    form.setValue('stressLevel', stressLevel);
+    // Reset dependent fields when stress level changes
+    if (stressLevel && !stressLevel.toLowerCase().includes('route')) {
+        form.setValue('routeId', undefined);
+        form.clearErrors('routeId');
+    }
+    if (stressLevel && !stressLevel.toLowerCase().includes('subcluster')) {
+        form.setValue('subclusterId', undefined);
+        form.clearErrors('subclusterId');
+    }
+    if (form.formState.dirtyFields.stressLevel) form.trigger('stressLevel');
+  };
+
 
   const onSubmit = async (data: StressRequestFormData) => {
     if (!currentUser || !selectedFacility) {
@@ -64,11 +102,18 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     }
     setIsSubmitting(true);
     try {
+      const route = data.routeId ? getRouteById(data.routeId) : undefined;
+      const subcluster = data.subclusterId ? getSubclusterById(data.subclusterId) : undefined;
+
       const requestPayload = {
         facilityId: data.facilityId,
         facilityName: selectedFacility.name,
         facilityType: selectedFacility.type,
         stressLevel: data.stressLevel,
+        routeId: data.routeId,
+        routeName: route?.name,
+        subclusterId: data.subclusterId,
+        subclusterName: subcluster?.name,
         startDate: data.startDate.toISOString(),
         extensionDays: data.extensionDays,
         reason: data.reason,
@@ -80,6 +125,8 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
         form.reset({
             facilityId: currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '',
             stressLevel: undefined,
+            routeId: undefined,
+            subclusterId: undefined,
             startDate: undefined,
             extensionDays: 1,
             reason: '',
@@ -98,7 +145,9 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     }
   };
   
-  const facilityTypeForStressLevel = selectedFacility?.type;
+  const facilityTypeForSelectors = selectedFacility?.type;
+  const currentStressLevel = form.getValues('stressLevel') as string | undefined;
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
@@ -118,7 +167,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                     <FacilitySelector
                       selectedFacilityId={field.value}
                       onFacilityChange={(facilityId) => {
-                        field.onChange(facilityId);
+                        // field.onChange(facilityId); // This is implicitly handled by setValue
                         handleFacilityChange(facilityId);
                       }}
                     />
@@ -141,15 +190,49 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
               render={({ field }) => (
                 <FormItem>
                   <StressLevelSelector
-                    facilityType={facilityTypeForStressLevel}
+                    facilityType={facilityTypeForSelectors}
                     selectedStressLevel={field.value}
-                    onStressLevelChange={field.onChange}
+                    onStressLevelChange={(value) => handleStressLevelChange(value as StressLevel)}
                     disabled={!selectedFacility}
                   />
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {currentStressLevel && currentStressLevel.toLowerCase().includes('route') && (
+              <FormField
+                control={form.control}
+                name="routeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <RouteSelector
+                      selectedRouteId={field.value}
+                      onRouteChange={field.onChange}
+                      disabled={!selectedFacility || !currentStressLevel}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {currentStressLevel && currentStressLevel.toLowerCase().includes('subcluster') && (
+              <FormField
+                control={form.control}
+                name="subclusterId"
+                render={({ field }) => (
+                  <FormItem>
+                    <SubclusterSelector
+                      selectedSubclusterId={field.value}
+                      onSubclusterChange={field.onChange}
+                      disabled={!selectedFacility || !currentStressLevel}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <FormField
               control={form.control}
@@ -160,7 +243,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                   <DatePicker 
                     date={field.value} 
                     setDate={field.onChange}
-                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} // Disable past dates
+                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} 
                   />
                   <FormMessage />
                 </FormItem>
