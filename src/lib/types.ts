@@ -5,7 +5,7 @@ export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
 
 export type FacilityType = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
 
-export type StressLevelFmPickup = 'Route' | 'Subcluster';
+export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Pincode';
 export type StressLevelLmDelivery = 'Subcluster' | 'Pincode';
 export type StressLevelRtoDto = 'Route' | 'Pincode';
 export type StressLevelRvpFacility = 'Pincode';
@@ -67,4 +67,14 @@ export interface StressRequest {
 export interface StressLevelOption {
   value: StressLevel;
   label: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string; // The ID of the user this notification is for
+  message: string;
+  timestamp: string; // ISO string
+  isRead: boolean;
+  relatedRequestId?: string; // Optional ID of the stress request this notification pertains to
+  link?: string; // Optional link for navigation
 }

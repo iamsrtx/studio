@@ -3,8 +3,8 @@
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { User, Facility, StressRequest, UserRole, FacilityType, Route, Subcluster } from '@/lib/types';
-import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS, MOCK_ROUTES, MOCK_SUBCLUSTERS } from '@/lib/data';
+import type { User, Facility, StressRequest, UserRole, FacilityType, Route, Subcluster, Notification } from '@/lib/types';
+import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS, MOCK_ROUTES, MOCK_SUBCLUSTERS, MOCK_NOTIFICATIONS } from '@/lib/data';
 import { suggestStressReason as suggestStressReasonFlow } from '@/ai/flows/suggest-stress-reason';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +16,7 @@ interface AppContextType {
   subclusters: Subcluster[];
   stressRequests: StressRequest[];
   maxExtensionDays: number;
+  notifications: Notification[];
   login: (userId: string) => void;
   logout: () => void;
   addStressRequest: (requestData: Omit<StressRequest, 'id' | 'submissionDate' | 'status' | 'submittedByUserId' | 'submittedByName'>) => Promise<StressRequest | null>;
@@ -27,6 +28,10 @@ interface AppContextType {
   getRouteById: (id: string) => Route | undefined;
   getSubclusterById: (id: string) => Subcluster | undefined;
   setMaxExtensionDays: (days: number) => void;
+  markNotificationAsRead: (notificationId: string) => void;
+  markAllCurrentUserNotificationsAsRead: () => void;
+  getUnreadNotificationsCount: () => number;
+  getCurrentUserNotifications: (limit?: number) => Notification[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -39,7 +44,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subclusters, setSubclusters] = useState<Subcluster[]>(MOCK_SUBCLUSTERS);
   const [stressRequests, setStressRequests] = useState<StressRequest[]>(MOCK_STRESS_REQUESTS);
   const [isLoadingAiReason, setIsLoadingAiReason] = useState(false);
-  const [maxExtensionDays, setMaxExtensionDaysState] = useState<number>(30); // Default max extension days
+  const [maxExtensionDays, setMaxExtensionDaysState] = useState<number>(30);
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,7 +61,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (storedMaxDays) {
         setMaxExtensionDaysState(parseInt(storedMaxDays, 10));
     }
+    // Persist notifications to localStorage (basic example)
+    const storedNotifications = localStorage.getItem('stressless-notifications');
+    if (storedNotifications) {
+        try {
+            setNotifications(JSON.parse(storedNotifications));
+        } catch (e) {
+            console.error("Error parsing notifications from localStorage", e);
+            setNotifications(MOCK_NOTIFICATIONS); // fallback
+        }
+    }
+
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('stressless-notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
 
   const login = useCallback((userId: string) => {
     const user = MOCK_USERS.find(u => u.id === userId);
@@ -76,6 +98,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     router.push('/login');
   }, [router]);
 
+  const internalAddNotification = (notificationData: Omit<Notification, 'id' | 'timestamp'>) => {
+    const newNotification: Notification = {
+      ...notificationData,
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+    };
+    setNotifications(prev => [newNotification, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+  };
+
   const addStressRequest = async (requestData: Omit<StressRequest, 'id' | 'submissionDate' | 'status' | 'submittedByUserId' | 'submittedByName'>): Promise<StressRequest | null> => {
     if (!currentUser) {
       console.error("No user logged in to submit request");
@@ -90,6 +121,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       submittedByName: currentUser.name,
     };
     setStressRequests(prev => [newRequest, ...prev]);
+
+    // Notify Admins
+    MOCK_USERS.filter(user => user.role === 'Administrator').forEach(admin => {
+      internalAddNotification({
+        userId: admin.id,
+        message: `New stress request for ${newRequest.facilityName} needs approval.`,
+        relatedRequestId: newRequest.id,
+        isRead: false,
+        link: `/dashboard/admin/approvals` // Or directly to request if detail page exists
+      });
+    });
     return newRequest;
   };
 
@@ -98,13 +140,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error("Unauthorized or no admin logged in");
       return;
     }
+    let updatedRequest: StressRequest | undefined;
     setStressRequests(prev =>
-      prev.map(req =>
-        req.id === requestId
-          ? { ...req, status, adminComments, adminApproverId: currentUser.id, approvalDate: new Date().toISOString() }
-          : req
-      )
+      prev.map(req => {
+        if (req.id === requestId) {
+          updatedRequest = { ...req, status, adminComments, adminApproverId: currentUser.id, approvalDate: new Date().toISOString() };
+          return updatedRequest;
+        }
+        return req;
+      })
     );
+
+    if (updatedRequest) {
+      // Notify original submitter
+      internalAddNotification({
+        userId: updatedRequest.submittedByUserId,
+        message: `Your stress request for ${updatedRequest.facilityName} has been ${status}.`,
+        relatedRequestId: updatedRequest.id,
+        isRead: false,
+        link: `/dashboard/requests` // Or directly to request
+      });
+    }
   };
   
   const fetchAiReason = async (facilityType: FacilityType): Promise<string> => {
@@ -132,6 +188,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const markNotificationAsRead = (notificationId: string) => {
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+  };
+
+  const markAllCurrentUserNotificationsAsRead = () => {
+    if (!currentUser) return;
+    setNotifications(prev => prev.map(n => n.userId === currentUser.id ? { ...n, isRead: true } : n));
+  };
+  
+  const getUnreadNotificationsCount = useCallback(() => {
+    if (!currentUser) return 0;
+    return notifications.filter(n => n.userId === currentUser.id && !n.isRead).length;
+  }, [currentUser, notifications]);
+
+  const getCurrentUserNotifications = useCallback((limit?: number) => {
+    if (!currentUser) return [];
+    const userNotifications = notifications
+      .filter(n => n.userId === currentUser.id)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return limit ? userNotifications.slice(0, limit) : userNotifications;
+  }, [currentUser, notifications]);
+
+
   return (
     <AppContext.Provider
       value={{
@@ -142,6 +221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         subclusters,
         stressRequests,
         maxExtensionDays,
+        notifications,
         login,
         logout,
         addStressRequest,
@@ -153,6 +233,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getRouteById,
         getSubclusterById,
         setMaxExtensionDays,
+        markNotificationAsRead,
+        markAllCurrentUserNotificationsAsRead,
+        getUnreadNotificationsCount,
+        getCurrentUserNotifications,
       }}
     >
       {children}

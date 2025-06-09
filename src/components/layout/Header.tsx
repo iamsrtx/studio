@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { APP_NAME } from '@/lib/constants';
-import { LogOut, UserCircle, Menu } from 'lucide-react';
+import { LogOut, UserCircle, Menu, Bell, CheckCheck } from 'lucide-react';
 import { MOCK_USERS } from '@/lib/data';
 import {
   DropdownMenu,
@@ -15,13 +15,36 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from '@/components/ui/sidebar';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 
 export default function Header() {
-  const { currentUser, logout, login } = useAppContext();
+  const { 
+    currentUser, 
+    logout, 
+    login, 
+    getUnreadNotificationsCount, 
+    getCurrentUserNotifications,
+    markNotificationAsRead,
+    markAllCurrentUserNotificationsAsRead 
+  } = useAppContext();
   const { toggleSidebar, isMobile } = useSidebar();
+  const router = useRouter();
+
+  const unreadCount = getUnreadNotificationsCount();
+  const notificationsToDisplay = getCurrentUserNotifications(5);
+
+  const handleNotificationClick = (notificationId: string, link?: string) => {
+    markNotificationAsRead(notificationId);
+    if (link) {
+      router.push(link);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-card shadow-sm">
@@ -36,7 +59,7 @@ export default function Header() {
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image 
               src="/xb-logo.png" 
-              alt="XB Stress Facility Logo" 
+              alt="XB Stress Facility Manager Logo" 
               width={28} 
               height={28} 
               className="h-7 w-7"
@@ -46,7 +69,58 @@ export default function Header() {
           </Link>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
+          {currentUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative rounded-full">
+                  <Bell className="h-6 w-6" />
+                  {unreadCount > 0 && (
+                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center rounded-full p-0 text-xs">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 md:w-96" align="end">
+                <DropdownMenuLabel className="flex justify-between items-center">
+                  <span>Notifications</span>
+                  {notificationsToDisplay.length > 0 && unreadCount > 0 && (
+                     <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={markAllCurrentUserNotificationsAsRead}>
+                        <CheckCheck className="mr-1 h-3 w-3" />
+                        Mark all as read
+                    </Button>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notificationsToDisplay.length > 0 ? (
+                  <DropdownMenuGroup className="max-h-80 overflow-y-auto">
+                    {notificationsToDisplay.map(notification => (
+                      <DropdownMenuItem 
+                        key={notification.id} 
+                        className={`flex flex-col items-start gap-1 whitespace-normal ${!notification.isRead ? 'bg-primary/5' : ''}`}
+                        onClick={() => handleNotificationClick(notification.id, notification.link)}
+                      >
+                        <p className={`text-sm ${!notification.isRead ? 'font-semibold' : ''}`}>{notification.message}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                        </p>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuGroup>
+                ) : (
+                  <DropdownMenuItem disabled className="text-center text-muted-foreground">
+                    No new notifications
+                  </DropdownMenuItem>
+                )}
+                {/* <DropdownMenuSeparator />
+                <DropdownMenuItem className="justify-center">
+                  View all notifications
+                </DropdownMenuItem> */}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {currentUser && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -1,14 +1,14 @@
 
-import type { User, Facility, StressRequest, FacilityType, Route, Subcluster } from './types';
+import type { User, Facility, StressRequest, FacilityType, Route, Subcluster, Notification } from './types';
 import { FACILITY_TYPE_TO_SHIPMENT_LEG } from './constants';
 
 export const MOCK_USERS: User[] = [
   { id: 'user-ops-1', name: 'Subham', email: 'subham.ops@example.com', role: 'Ops' },
-  { id: 'user-fh-fm', name: 'Parag', email: 'parag.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-1' },
+  { id: 'user-fh-fm', name: 'Raman', email: 'raman.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-1' },
   { id: 'user-fh-lm', name: 'Ankush', email: 'ankush.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-2' },
   { id: 'user-fh-rto', name: 'Priya', email: 'priya.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-3' },
   { id: 'user-fh-rvp', name: 'Mohan', email: 'mohan.fh@example.com', role: 'FacilityHead', assignedFacilityId: 'facility-4' },
-  { id: 'user-admin-1', name: 'Raman', email: 'raman.admin@example.com', role: 'Administrator' },
+  { id: 'user-admin-1', name: 'Parag', email: 'parag.admin@example.com', role: 'Administrator' },
 ];
 
 export const MOCK_FACILITIES: Facility[] = [
@@ -47,7 +47,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     extensionDays: 5,
     reason: 'High volume due to peak season.',
     submittedByUserId: 'user-fh-fm', 
-    submittedByName: 'Parag', 
+    submittedByName: 'Raman', 
     submissionDate: new Date().toISOString(),
     status: 'Pending',
   },
@@ -89,3 +89,4 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
   },
 ];
 
+export const MOCK_NOTIFICATIONS: Notification[] = [];
