@@ -38,13 +38,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Header />
         <div className="flex flex-1">
           <SidebarNav />
-          <SidebarInset>
-            <main className="flex-1 p-4 md:p-6 lg:p-8">
-              {/* Removed 'container mx-auto' to allow full width */}
-              <div className="w-full"> 
-                 {children}
-              </div>
-            </main>
+          <SidebarInset className="p-4 md:p-6 lg:p-8">
+            {children}
           </SidebarInset>
         </div>
       </div>
