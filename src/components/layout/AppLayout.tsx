@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -39,7 +40,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarNav />
           <SidebarInset>
             <main className="flex-1 p-4 md:p-6 lg:p-8">
-              <div className="container mx-auto">
+              {/* Removed 'container mx-auto' to allow full width */}
+              <div className="w-full"> 
                  {children}
               </div>
             </main>
