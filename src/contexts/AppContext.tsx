@@ -15,6 +15,7 @@ interface AppContextType {
   routes: Route[];
   subclusters: Subcluster[];
   stressRequests: StressRequest[];
+  maxExtensionDays: number;
   login: (userId: string) => void;
   logout: () => void;
   addStressRequest: (requestData: Omit<StressRequest, 'id' | 'submissionDate' | 'status' | 'submittedByUserId' | 'submittedByName'>) => Promise<StressRequest | null>;
@@ -25,6 +26,7 @@ interface AppContextType {
   getUserById: (id: string) => User | undefined;
   getRouteById: (id: string) => Route | undefined;
   getSubclusterById: (id: string) => Subcluster | undefined;
+  setMaxExtensionDays: (days: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subclusters, setSubclusters] = useState<Subcluster[]>(MOCK_SUBCLUSTERS);
   const [stressRequests, setStressRequests] = useState<StressRequest[]>(MOCK_STRESS_REQUESTS);
   const [isLoadingAiReason, setIsLoadingAiReason] = useState(false);
+  const [maxExtensionDays, setMaxExtensionDaysState] = useState<number>(30); // Default max extension days
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +50,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser(user);
         setCurrentRole(user.role);
       }
+    }
+    const storedMaxDays = localStorage.getItem('stressless-maxExtensionDays');
+    if (storedMaxDays) {
+        setMaxExtensionDaysState(parseInt(storedMaxDays, 10));
     }
   }, []);
 
@@ -118,6 +125,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const getRouteById = (id: string) => routes.find(r => r.id === id);
   const getSubclusterById = (id: string) => subclusters.find(sc => sc.id === id);
 
+  const setMaxExtensionDays = (days: number) => {
+    if (days > 0) {
+      setMaxExtensionDaysState(days);
+      localStorage.setItem('stressless-maxExtensionDays', days.toString());
+    }
+  };
 
   return (
     <AppContext.Provider
@@ -128,6 +141,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         routes,
         subclusters,
         stressRequests,
+        maxExtensionDays,
         login,
         logout,
         addStressRequest,
@@ -138,6 +152,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getUserById,
         getRouteById,
         getSubclusterById,
+        setMaxExtensionDays,
       }}
     >
       {children}

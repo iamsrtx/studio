@@ -19,7 +19,7 @@ export const StressRequestSchema = z.object({
   subclusterId: z.string().optional(),
   startDate: z.date({ required_error: "Start date is required." })
     .min(new Date(new Date().setHours(0,0,0,0)), "Start date cannot be in the past."),
-  extensionDays: z.coerce.number().min(1, "Extension days must be at least 1.").max(30, "Extension days cannot exceed 30."),
+  extensionDays: z.coerce.number().min(1, "Extension days must be at least 1."), // Max validation handled in form
   reason: z.string().optional(),
 }).superRefine((data, ctx) => {
     // Check if stressLevel is 'Route' or 'Subcluster' and if the respective ID is provided.
@@ -47,3 +47,9 @@ export const AdminApprovalSchema = z.object({
 });
 
 export type AdminApprovalFormData = z.infer<typeof AdminApprovalSchema>;
+
+export const AdminSettingsSchema = z.object({
+  maxExtensionDays: z.coerce.number().min(1, "Max extension days must be at least 1.").max(365, "Max extension days cannot exceed 365."),
+});
+
+export type AdminSettingsFormData = z.infer<typeof AdminSettingsSchema>;

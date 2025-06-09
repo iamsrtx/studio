@@ -26,13 +26,13 @@ interface StressRequestFormProps {
 }
 
 export default function StressRequestForm({ onSubmitSuccess }: StressRequestFormProps) {
-  const { currentUser, facilities, addStressRequest, getFacilityById, getRouteById, getSubclusterById } = useAppContext();
+  const { currentUser, facilities, addStressRequest, getFacilityById, getRouteById, getSubclusterById, maxExtensionDays } = useAppContext();
   const { toast } = useToast();
   const [selectedFacility, setSelectedFacility] = useState<Facility | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<StressRequestFormData>({
-    resolver: zodResolver(StressRequestSchema),
+    resolver: zodResolver(StressRequestSchema), // Zod schema no longer has dynamic max
     defaultValues: {
       facilityId: currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '',
       stressLevel: undefined,
@@ -45,6 +45,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   });
 
   const watchedStressLevel = form.watch('stressLevel');
+  const watchedExtensionDays = form.watch('extensionDays');
 
   useEffect(() => {
     if (currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId) {
@@ -57,7 +58,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   }, [currentUser, getFacilityById, form]);
 
   useEffect(() => {
-    const stressLevelValue = watchedStressLevel as string | undefined; // Cast for includes
+    const stressLevelValue = watchedStressLevel as string | undefined; 
     if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('route')) {
       form.setValue('routeId', undefined);
       if(form.formState.dirtyFields.routeId) form.clearErrors('routeId');
@@ -67,6 +68,20 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId');
     }
   }, [watchedStressLevel, form]);
+
+  // Effect to validate extensionDays against admin-set maxExtensionDays
+  useEffect(() => {
+    if (watchedExtensionDays > maxExtensionDays) {
+      form.setError('extensionDays', {
+        type: 'manual',
+        message: `Extension days cannot exceed the admin-set limit of ${maxExtensionDays}.`
+      });
+    } else if (form.formState.errors.extensionDays?.type === 'manual' && watchedExtensionDays <= maxExtensionDays) {
+      // Clear only if it was a manual error previously set by this logic and now it's valid
+      form.clearErrors('extensionDays');
+    }
+  }, [watchedExtensionDays, maxExtensionDays, form]);
+
 
   const handleFacilityChange = (facilityId: string) => {
     const facility = getFacilityById(facilityId);
@@ -82,7 +97,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   
   const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
     form.setValue('stressLevel', stressLevel);
-    // Reset dependent fields when stress level changes
     if (stressLevel && !stressLevel.toLowerCase().includes('route')) {
         form.setValue('routeId', undefined);
         form.clearErrors('routeId');
@@ -100,6 +114,16 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       toast({ title: "Error", description: "User or facility not found.", variant: "destructive" });
       return;
     }
+     // Final check before submission, though useEffect should handle this reactively
+    if (data.extensionDays > maxExtensionDays) {
+        form.setError('extensionDays', {
+            type: 'manual',
+            message: `Extension days cannot exceed the admin-set limit of ${maxExtensionDays}.`
+        });
+        toast({ title: "Validation Error", description: `Extension days cannot exceed ${maxExtensionDays}.`, variant: "destructive" });
+        return;
+    }
+
     setIsSubmitting(true);
     try {
       const route = data.routeId ? getRouteById(data.routeId) : undefined;
@@ -167,7 +191,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                     <FacilitySelector
                       selectedFacilityId={field.value}
                       onFacilityChange={(facilityId) => {
-                        // field.onChange(facilityId); // This is implicitly handled by setValue
                         handleFacilityChange(facilityId);
                       }}
                     />
@@ -257,8 +280,19 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 <FormItem>
                   <FormLabel>Extension Days T(Ex)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 7" {...field} onChange={e => field.onChange(parseInt(e.target.value,10) || 0)} className="h-10" />
+                    <Input 
+                      type="number" 
+                      placeholder="e.g., 7" 
+                      {...field} 
+                      onChange={e => field.onChange(parseInt(e.target.value,10) || 0)} 
+                      min={1}
+                      max={maxExtensionDays} // HTML5 validation
+                      className="h-10" 
+                    />
                   </FormControl>
+                  <FormDescription>
+                    Min: 1, Max: {maxExtensionDays} (Admin-defined)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

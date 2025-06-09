@@ -12,7 +12,8 @@ import {
   ListChecks, 
   ShieldCheck, 
   Building,
-  Users
+  Users,
+  SettingsIcon // Added SettingsIcon
 } from 'lucide-react';
 import {
   Sidebar,
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/admin/approvals', label: 'Pending Approvals', icon: ShieldCheck, roles: ['Administrator'] },
   { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'] },
   { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'] },
+  { href: '/dashboard/admin/settings', label: 'App Settings', icon: SettingsIcon, roles: ['Administrator'] }, // New Nav Item
 ];
 
 export default function SidebarNav() {
@@ -80,9 +82,8 @@ export default function SidebarNav() {
             </ScrollArea>
         </SidebarContent>
         <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden">
-            <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} StressLess Inc.</p>
+            <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} XB Stress Facility Manager</p>
         </SidebarFooter>
     </Sidebar>
   );
 }
-
