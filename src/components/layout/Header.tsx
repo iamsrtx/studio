@@ -2,7 +2,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { APP_NAME } from '@/lib/constants';
@@ -57,14 +56,9 @@ export default function Header() {
             </Button>
           )}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Image 
-              src="/xb-logo.png" 
-              alt="XB Stress Facility Manager Logo" 
-              width={28} 
-              height={28} 
-              className="h-7 w-7"
-              data-ai-hint="logo brand"
-            />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <span className="text-sm font-bold">XB</span>
+            </div>
             <span className="text-xl font-semibold font-headline">{APP_NAME}</span>
           </Link>
         </div>
