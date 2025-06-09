@@ -16,6 +16,7 @@ import type { Facility, FacilityType, StressLevel, User } from '@/lib/types';
 import { StressRequestSchema, type StressRequestFormData } from '@/zod-schemas';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
+import { Label } from "@/components/ui/label";
 
 interface StressRequestFormProps {
   onSubmitSuccess?: () => void;
