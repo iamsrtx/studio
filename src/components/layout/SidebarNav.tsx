@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   LayoutDashboard, 
@@ -61,7 +60,6 @@ export default function SidebarNav() {
             <SidebarMenu>
                 {filteredNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <Link href={item.href}>
                     <SidebarMenuButton
                         asChild
                         isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
@@ -71,12 +69,11 @@ export default function SidebarNav() {
                         )}
                         tooltip={item.label}
                     >
-                        <a>
+                      <Link href={item.href}>
                         <item.icon className="h-5 w-5 mr-3" />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                        </a>
+                      </Link>
                     </SidebarMenuButton>
-                    </Link>
                 </SidebarMenuItem>
                 ))}
             </SidebarMenu>
@@ -88,3 +85,4 @@ export default function SidebarNav() {
     </Sidebar>
   );
 }
+
