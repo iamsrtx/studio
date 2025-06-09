@@ -32,4 +32,4 @@ export const STRESS_LEVELS_MAP: Record<FacilityType, StressLevelOption[]> = {
   ],
 };
 
-export const APP_NAME = "XB Stress Facility";
+export const APP_NAME = "XB Stress Facility Manager";
