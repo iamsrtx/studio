@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { DatePicker } from '@/components/ui/date-picker';
 import FacilitySelector from './FacilitySelector';
 import StressLevelSelector from './StressLevelSelector';
@@ -323,3 +323,4 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
+
