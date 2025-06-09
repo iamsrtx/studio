@@ -50,7 +50,7 @@ export default function SidebarNav() {
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
 
   return (
-    <Sidebar collapsible="icon" defaultOpen={true} className="border-r">
+    <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader className="flex items-center justify-between p-2">
             <div className="p-2 text-sm font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">Navigation</div>
              <SidebarTrigger className="hidden md:flex text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent" />
