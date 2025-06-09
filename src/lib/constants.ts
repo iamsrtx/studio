@@ -16,16 +16,16 @@ export const FACILITY_TYPE_TO_SHIPMENT_LEG: Record<FacilityType, ShipmentLeg> = 
 
 export const STRESS_LEVELS_MAP: Record<FacilityType, StressLevelOption[]> = {
   'FM Pickup': [
+    { value: 'Pincode', label: 'Pincode' },
     { value: 'Route', label: 'Route' },
-    { value: 'Subcluster', label: 'Subcluster' },
   ],
   'LM Delivery': [
-    { value: 'Subcluster', label: 'Subcluster' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Subcluster', label: 'Subcluster' },
   ],
   'RTO/DTO': [
-    { value: 'Route', label: 'Route' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Route', label: 'Route' },
   ],
   'RVP Facility': [
     { value: 'Pincode', label: 'Pincode' },
