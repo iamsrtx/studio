@@ -2,7 +2,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { APP_NAME } from '@/lib/constants';
@@ -55,15 +54,9 @@ export default function Header() {
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
           <Link href="/dashboard" className="flex items-center gap-2">
-            {/* User needs to place their logo at public/logo.png or update src */}
-            <Image 
-              src="/logo.png" 
-              alt="App Logo" 
-              width={110} // Adjusted for ~2.5x height, maintaining aspect ratio (274/94 ~ 2.91), h-7 is 28px. 28*2.91 = 81. Let's try fixed values.
-              height={38}   // Adjusted to maintain aspect ratio for width 110
-              className="h-auto" // Use h-auto to maintain aspect ratio based on width, or set fixed height like h-7 or h-8
-              data-ai-hint="logo"
-            />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <span className="text-lg font-bold">XB</span>
+            </div>
             <span className="text-xl font-semibold font-headline hidden sm:inline-block">{APP_NAME}</span>
           </Link>
         </div>
