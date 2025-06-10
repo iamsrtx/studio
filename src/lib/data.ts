@@ -45,7 +45,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     routeName: 'FM Route Alpha',
     startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 5,
-    reason: 'Space Stress', // Updated
+    reason: 'Space Stress', 
     submittedByUserId: 'user-fh-fm', 
     submittedByName: 'Parag', 
     submissionDate: new Date().toISOString(),
@@ -61,13 +61,13 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     subclusterName: 'South Subcluster',
     startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 7,
-    reason: 'Space Stress', // Updated
+    reason: 'Space Stress', 
     submittedByUserId: 'user-ops-1',
     submittedByName: 'Subham', 
     submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), 
     status: 'Approved',
     adminApproverId: 'user-admin-1', 
-    adminComments: 'Approved due to critical space issues.', // Adjusted comment for context
+    adminComments: 'Approved due to critical space issues.', 
     approvalDate: new Date().toISOString(),
   },
     {
@@ -78,7 +78,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     stressLevel: 'Facility', 
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
-    reason: 'Volume Stress',
+    reason: 'Space Stress', // Updated from Volume Stress
     submittedByUserId: 'user-fh-rto', 
     submittedByName: 'Priya', 
     submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -90,3 +90,4 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [];
+

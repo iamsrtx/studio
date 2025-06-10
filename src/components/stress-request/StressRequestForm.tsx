@@ -40,7 +40,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
-      reason: undefined, // Changed to undefined for Select placeholder
+      reason: undefined, 
     },
   });
 
@@ -140,7 +140,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
         subclusterName: subcluster?.name,
         startDate: data.startDate.toISOString(),
         extensionDays: data.extensionDays,
-        reason: data.reason, // reason is now guaranteed to be one of the enum values
+        reason: data.reason,
       };
 
       const newRequest = await addStressRequest(requestPayload);
@@ -312,7 +312,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Space Stress">Space Stress</SelectItem>
-                      <SelectItem value="Volume Stress">Volume Stress</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -330,3 +329,4 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
+
