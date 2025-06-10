@@ -30,8 +30,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      {/* This is the overall page container, strictly viewport height */}
-      <div className="flex h-screen flex-col bg-background">
+      {/* This div is rendered by SidebarProvider, which has h-full w-full.
+          The div below is its child. */}
+      <div className="flex h-full flex-col bg-background"> {/* Changed from h-screen to h-full */}
         <Header /> {/* Header is already configured sticky (sticky top-0 z-40) */}
         {/* This container holds the sidebar and the main scrollable content area, taking up remaining vertical space */}
         <div className="flex flex-1 overflow-hidden"> {/* overflow-hidden helps contain children and manage layout */}
