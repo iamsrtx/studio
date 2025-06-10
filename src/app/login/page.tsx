@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -28,8 +29,15 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="text-2xl font-bold">XB</span>
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            {/* User needs to place their logo at public/logo.png or update src */}
+            <Image 
+              src="/logo.png" 
+              alt="App Logo" 
+              width={180} // Larger size for login page
+              height={62}  // Maintain aspect ratio (274/94 ~ 2.91). 180/2.91 ~ 61.8
+              data-ai-hint="logo large"
+            />
           </div>
           <CardTitle className="text-3xl font-headline">{APP_NAME}</CardTitle>
           <CardDescription>Select a user profile to continue</CardDescription>
