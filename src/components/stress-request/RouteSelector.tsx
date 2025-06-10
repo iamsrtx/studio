@@ -31,7 +31,7 @@ export default function RouteSelector({ selectedRouteId, onRouteChange, disabled
         <SelectContent>
           {availableRoutes.map((route: Route) => (
             <SelectItem key={route.id} value={route.id}>
-              {route.name}
+              {route.name} ({route.type})
             </SelectItem>
           ))}
           {availableRoutes.length === 0 && <SelectItem value="no-routes" disabled>No routes available</SelectItem>}
@@ -40,3 +40,4 @@ export default function RouteSelector({ selectedRouteId, onRouteChange, disabled
     </div>
   );
 }
+

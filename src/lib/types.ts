@@ -33,6 +33,7 @@ export interface User {
 export interface Route {
   id: string;
   name: string;
+  type: string; // e.g., 'Pickup', 'Delivery', 'Linehaul', 'Transfer'
   // facilityType?: FacilityType; // Could be used for filtering if routes are type-specific
 }
 

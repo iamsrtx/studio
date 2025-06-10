@@ -20,10 +20,10 @@ export const MOCK_FACILITIES: Facility[] = [
 ];
 
 export const MOCK_ROUTES: Route[] = [
-  { id: 'route-fm-1', name: 'FM Route Alpha' },
-  { id: 'route-fm-2', name: 'FM Route Beta' },
-  { id: 'route-rto-1', name: 'RTO Route Gamma' },
-  { id: 'route-rto-2', name: 'RTO Route Delta' },
+  { id: 'route-fm-1', name: 'FM Route Alpha', type: 'Pickup' },
+  { id: 'route-fm-2', name: 'FM Route Beta', type: 'Pickup' },
+  { id: 'route-rto-1', name: 'RTO Route Gamma', type: 'Transfer' },
+  { id: 'route-rto-2', name: 'RTO Route Delta', type: 'Transfer' },
 ];
 
 export const MOCK_SUBCLUSTERS: Subcluster[] = [
@@ -38,14 +38,14 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
   {
     id: 'req-1',
     facilityId: 'facility-1',
-    facilityName: 'PNQ/KHR', // Updated
+    facilityName: 'PNQ/KHR',
     facilityType: 'FM Pickup',
     stressLevel: 'Route',
     routeId: 'route-fm-1',
     routeName: 'FM Route Alpha',
     startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 5,
-    reason: 'Manpower Stress', // Assuming a default, was 'High volume due to peak season.'
+    reason: 'Manpower Stress',
     submittedByUserId: 'user-fh-fm', 
     submittedByName: 'Parag', 
     submissionDate: new Date().toISOString(),
@@ -54,7 +54,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
   {
     id: 'req-2',
     facilityId: 'facility-2',
-    facilityName: 'PNQ/CHK', // Updated
+    facilityName: 'PNQ/CHK',
     facilityType: 'LM Delivery',
     stressLevel: 'Subcluster',
     subclusterId: 'sc-south',
@@ -73,12 +73,12 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     {
     id: 'req-3',
     facilityId: 'facility-3',
-    facilityName: 'DEL/PTD', // Updated
+    facilityName: 'DEL/PTD',
     facilityType: 'RTO/DTO',
     stressLevel: 'Pincode', 
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
-    reason: 'Volume Stress', // Assuming a default, was 'System outage affecting processing.'
+    reason: 'Volume Stress',
     submittedByUserId: 'user-fh-rto', 
     submittedByName: 'Priya', 
     submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -90,3 +90,4 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [];
+
