@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { APP_NAME } from '@/lib/constants';
-import { LogOut, UserCircle, Menu, Bell, CheckCheck } from 'lucide-react';
+import { LogOut, UserCircle, Menu, Bell, CheckCheck, PanelLeft } from 'lucide-react';
 import { MOCK_USERS } from '@/lib/data';
 import {
   DropdownMenu,
@@ -49,12 +49,10 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full border-b bg-card shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center">
-          {isMobile && (
-             <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle Sidebar</span>
-            </Button>
-          )}
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 md:mr-4">
+            {isMobile ? <Menu className="h-6 w-6" /> : <PanelLeft className="h-6 w-6" />}
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <span className="text-sm font-bold">XB</span>
@@ -107,10 +105,6 @@ export default function Header() {
                     No new notifications
                   </DropdownMenuItem>
                 )}
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem className="justify-center">
-                  View all notifications
-                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

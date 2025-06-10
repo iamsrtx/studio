@@ -23,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
+  // SidebarTrigger, // Removed as trigger is now in main Header
 } from '@/components/ui/sidebar';
 
 interface NavItem {
@@ -53,10 +53,10 @@ export default function SidebarNav() {
   const filteredNavItems = navItems.filter(item => !item.isRemoved && item.roles.includes(currentRole));
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
+    <Sidebar collapsible="offcanvas" className="border-r"> {/* Changed from icon to offcanvas */}
         <SidebarHeader className="flex items-center justify-between p-2">
-            <div className="p-2 text-sm font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">Navigation</div>
-             <SidebarTrigger className="hidden md:flex text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent" />
+            <div className="p-2 text-sm font-semibold text-sidebar-foreground">Navigation</div>
+             {/* SidebarTrigger removed from here. Control is now in the main Header.tsx */}
         </SidebarHeader>
         <SidebarContent>
             <ScrollArea className="h-full">
@@ -70,10 +70,11 @@ export default function SidebarNav() {
                             "w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                             (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))) && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
                         )}
-                        tooltip={item.label}
+                        tooltip={item.label} 
                     >
                       <Link href={item.href}>
                         <item.icon className="h-5 w-5 mr-3" />
+                        {/* Span is always visible when sidebar is open (not icon-only mode anymore for desktop) */}
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -82,10 +83,9 @@ export default function SidebarNav() {
             </SidebarMenu>
             </ScrollArea>
         </SidebarContent>
-        <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden">
+        <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden group-data-[state=collapsed]:hidden"> {/* Hide footer when offcanvas and collapsed */}
             <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} XB Stress Facility Manager</p>
         </SidebarFooter>
     </Sidebar>
   );
 }
-
