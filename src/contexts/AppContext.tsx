@@ -7,6 +7,7 @@ import type { User, Facility, StressRequest, UserRole, FacilityType, Route, Subc
 import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS, MOCK_ROUTES, MOCK_SUBCLUSTERS, MOCK_NOTIFICATIONS } from '@/lib/data';
 import { suggestStressReason as suggestStressReasonFlow } from '@/ai/flows/suggest-stress-reason';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 
 interface AppContextType {
   currentUser: User | null;
@@ -61,14 +62,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (storedMaxDays) {
         setMaxExtensionDaysState(parseInt(storedMaxDays, 10));
     }
-    // Persist notifications to localStorage (basic example)
     const storedNotifications = localStorage.getItem('stressless-notifications');
     if (storedNotifications) {
         try {
             setNotifications(JSON.parse(storedNotifications));
         } catch (e) {
             console.error("Error parsing notifications from localStorage", e);
-            setNotifications(MOCK_NOTIFICATIONS); // fallback
+            setNotifications(MOCK_NOTIFICATIONS); 
         }
     }
 
@@ -122,44 +122,158 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setStressRequests(prev => [newRequest, ...prev]);
 
-    // Notify Admins
     MOCK_USERS.filter(user => user.role === 'Administrator').forEach(admin => {
       internalAddNotification({
         userId: admin.id,
         message: `New stress request for ${newRequest.facilityName} needs approval.`,
         relatedRequestId: newRequest.id,
         isRead: false,
-        link: `/dashboard/admin/approvals` // Or directly to request if detail page exists
+        link: `/dashboard/admin/approvals` 
       });
     });
     return newRequest;
   };
 
-  const updateStressRequestStatus = async (requestId: string, status: 'Approved' | 'Rejected', adminComments?: string) => {
+  const updateStressRequestStatus = async (requestId: string, status: 'Approved' | 'Rejected', adminCommentsInput?: string) => {
     if (!currentUser || currentUser.role !== 'Administrator') {
       console.error("Unauthorized or no admin logged in");
       return;
     }
-    let updatedRequest: StressRequest | undefined;
-    setStressRequests(prev =>
-      prev.map(req => {
-        if (req.id === requestId) {
-          updatedRequest = { ...req, status, adminComments, adminApproverId: currentUser.id, approvalDate: new Date().toISOString() };
-          return updatedRequest;
-        }
-        return req;
-      })
-    );
 
-    if (updatedRequest) {
-      // Notify original submitter
-      internalAddNotification({
-        userId: updatedRequest.submittedByUserId,
-        message: `Your stress request for ${updatedRequest.facilityName} has been ${status}.`,
-        relatedRequestId: updatedRequest.id,
-        isRead: false,
-        link: `/dashboard/requests` // Or directly to request
+    let requestToApprove = stressRequests.find(req => req.id === requestId);
+    if (!requestToApprove) {
+      console.error("Request to update/approve not found");
+      return;
+    }
+    
+    let finalUpdatedRequestForNotification: StressRequest | undefined;
+
+    if (status === 'Approved') {
+      const existingActiveRequest = stressRequests.find(req => {
+        if (req.id === requestId || req.status !== 'Approved') return false;
+        if (req.facilityId !== requestToApprove!.facilityId) return false;
+
+        const toApproveStressLevel = requestToApprove!.stressLevel.toLowerCase();
+        const existingReqStressLevel = req.stressLevel.toLowerCase();
+
+        if (toApproveStressLevel.includes('route')) {
+          if (!existingReqStressLevel.includes('route') || req.routeId !== requestToApprove!.routeId) return false;
+        } else if (toApproveStressLevel.includes('subcluster')) {
+          if (!existingReqStressLevel.includes('subcluster') || req.subclusterId !== requestToApprove!.subclusterId) return false;
+        } else { // Pincode level for requestToApprove
+          if (existingReqStressLevel.includes('route') || existingReqStressLevel.includes('subcluster')) return false;
+        }
+
+        const reqStartDate = new Date(req.startDate);
+        const reqEndDate = new Date(reqStartDate);
+        reqEndDate.setDate(reqStartDate.getDate() + req.extensionDays);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return reqEndDate >= today;
       });
+
+      if (existingActiveRequest) {
+        const currentAdminApproverId = currentUser.id;
+        const currentApprovalDate = new Date().toISOString();
+
+        const existingOrigStartDate = new Date(existingActiveRequest.startDate);
+        const existingOrigEndDate = new Date(existingOrigStartDate);
+        existingOrigEndDate.setDate(existingOrigStartDate.getDate() + existingActiveRequest.extensionDays);
+
+        const newReqStartDate = new Date(requestToApprove.startDate);
+        const newReqEndDate = new Date(newReqStartDate);
+        newReqEndDate.setDate(newReqStartDate.getDate() + requestToApprove.extensionDays);
+
+        const finalStartDate = existingOrigStartDate < newReqStartDate ? existingOrigStartDate : newReqStartDate;
+        const finalEndDate = existingOrigEndDate > newReqEndDate ? existingOrigEndDate : newReqEndDate;
+        
+        const timeDiff = finalEndDate.getTime() - finalStartDate.getTime();
+        const totalNewExtensionDays = Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
+
+        const commentForExisting = `Extended/Updated on ${format(new Date(currentApprovalDate), 'PPP')} by ${currentUser.name} (merging request ${requestToApprove.id}). Admin note: ${adminCommentsInput || '-'}.`;
+        const updatedExistingRequest = {
+          ...existingActiveRequest,
+          startDate: finalStartDate.toISOString(),
+          extensionDays: totalNewExtensionDays,
+          adminComments: existingActiveRequest.adminComments ? `${existingActiveRequest.adminComments}; ${commentForExisting}` : commentForExisting,
+          adminApproverId: currentAdminApproverId,
+          approvalDate: currentApprovalDate,
+        };
+        
+        const mergedRequest = {
+            ...requestToApprove,
+            status: 'Merged' as 'Merged',
+            adminComments: `Request approved; its period was merged into existing stress marking ${existingActiveRequest.id}. Admin comment for this action: ${adminCommentsInput || 'None'}`.trim(),
+            adminApproverId: currentAdminApproverId,
+            approvalDate: currentApprovalDate,
+        };
+        finalUpdatedRequestForNotification = mergedRequest;
+
+        setStressRequests(prev =>
+          prev.map(r => {
+            if (r.id === existingActiveRequest.id) return updatedExistingRequest;
+            if (r.id === requestId) return mergedRequest;
+            return r;
+          })
+        );
+
+        if (existingActiveRequest.submittedByUserId !== requestToApprove.submittedByUserId) {
+             internalAddNotification({
+                userId: existingActiveRequest.submittedByUserId,
+                message: `The stress period for ${existingActiveRequest.facilityName} (ID: ${existingActiveRequest.id}) has been updated. New end date: ${format(finalEndDate, 'PPP')}.`,
+                relatedRequestId: existingActiveRequest.id,
+                isRead: false,
+                link: `/dashboard/requests`
+            });
+        }
+         internalAddNotification({
+            userId: requestToApprove.submittedByUserId,
+            message: `Your stress request for ${requestToApprove.facilityName} was approved and merged. Facility stressed until ${format(finalEndDate, 'PPP')}.`,
+            relatedRequestId: requestToApprove.id,
+            isRead: false,
+            link: `/dashboard/requests`
+        });
+
+      } else {
+        // No existing active request, proceed with normal approval
+        setStressRequests(prev =>
+          prev.map(req => {
+            if (req.id === requestId) {
+              finalUpdatedRequestForNotification = { ...req, status, adminComments: adminCommentsInput, adminApproverId: currentUser.id, approvalDate: new Date().toISOString() };
+              return finalUpdatedRequestForNotification;
+            }
+            return req;
+          })
+        );
+         if (finalUpdatedRequestForNotification) {
+            internalAddNotification({
+                userId: finalUpdatedRequestForNotification.submittedByUserId,
+                message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} has been ${status}.`,
+                relatedRequestId: finalUpdatedRequestForNotification.id,
+                isRead: false,
+                link: `/dashboard/requests`
+            });
+        }
+      }
+    } else { // For 'Rejected' status
+      setStressRequests(prev =>
+        prev.map(req => {
+          if (req.id === requestId) {
+            finalUpdatedRequestForNotification = { ...req, status, adminComments: adminCommentsInput, adminApproverId: currentUser.id, approvalDate: new Date().toISOString() };
+            return finalUpdatedRequestForNotification;
+          }
+          return req;
+        })
+      );
+       if (finalUpdatedRequestForNotification) {
+         internalAddNotification({
+            userId: finalUpdatedRequestForNotification.submittedByUserId,
+            message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} has been ${status}.`,
+            relatedRequestId: finalUpdatedRequestForNotification.id,
+            isRead: false,
+            link: `/dashboard/requests`
+        });
+      }
     }
   };
   

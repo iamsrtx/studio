@@ -58,7 +58,7 @@ export interface StressRequest {
   submittedByUserId: string;
   submittedByName: string;
   submissionDate: string; // ISO string
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Merged';
   adminApproverId?: string;
   adminComments?: string;
   approvalDate?: string; // ISO string
@@ -78,3 +78,4 @@ export interface Notification {
   relatedRequestId?: string; // Optional ID of the stress request this notification pertains to
   link?: string; // Optional link for navigation
 }
+

@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { StressRequest, UserRole } from '@/lib/types';
 import { useAppContext } from '@/contexts/AppContext';
-import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface StressRequestListItemProps {
@@ -32,7 +32,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
     if (currentUserRole !== 'Administrator') return;
     try {
       await updateStressRequestStatus(request.id, status, adminComments);
-      toast({ title: `Request ${status.toLowerCase()}`, description: `Request ID ${request.id} has been ${status.toLowerCase()}.`});
+      toast({ title: `Request ${status.toLowerCase()}`, description: `Request ID ${request.id} has been ${status.toLowerCase()}. If merged, check existing requests.`});
       if (status === 'Approved') {
         setIsApproveDialogOpen(false);
       } else {
@@ -53,7 +53,8 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
     switch (status) {
       case 'Approved': return 'default'; 
       case 'Rejected': return 'destructive';
-      case 'Pending': return 'secondary'; 
+      case 'Pending': return 'secondary';
+      case 'Merged': return 'outline'; // Using 'outline' for Merged, can be customized
       default: return 'outline';
     }
   };
@@ -63,6 +64,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       case 'Approved': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'Rejected': return <XCircle className="h-4 w-4 text-red-500" />;
       case 'Pending': return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'Merged': return <GitMerge className="h-4 w-4 text-blue-500" />;
       default: return null;
     }
   };
@@ -97,12 +99,12 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
         )}
         {request.status !== 'Pending' && adminApprover && (
           <>
-            <InfoItem icon={User} label={`${request.status} By`} value={adminApprover.name} />
+            <InfoItem icon={User} label={`${request.status !== 'Merged' ? request.status : 'Processed'} By`} value={adminApprover.name} />
             {request.adminComments && (
               <InfoItem icon={MessageSquare} label="Admin Comments" value={request.adminComments} isFullWidth />
             )}
             {request.approvalDate && (
-              <InfoItem icon={CalendarDays} label={`${request.status} On`} value={format(parseISO(request.approvalDate), 'PPP p')} />
+              <InfoItem icon={CalendarDays} label={`${request.status !== 'Merged' ? request.status : 'Processed'} On`} value={format(parseISO(request.approvalDate), 'PPP p')} />
             )}
           </>
         )}
