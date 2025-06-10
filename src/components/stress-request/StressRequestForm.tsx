@@ -13,7 +13,7 @@ import FacilitySelector from './FacilitySelector';
 import StressLevelSelector from './StressLevelSelector';
 import RouteSelector from './RouteSelector';
 import SubclusterSelector from './SubclusterSelector';
-import ReasonSuggestion from './ReasonSuggestion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
 import { useAppContext } from '@/contexts/AppContext';
 import type { Facility, FacilityType, StressLevel, User } from '@/lib/types';
 import { StressRequestSchema, type StressRequestFormData } from '@/zod-schemas';
@@ -32,7 +32,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<StressRequestFormData>({
-    resolver: zodResolver(StressRequestSchema), // Zod schema no longer has dynamic max
+    resolver: zodResolver(StressRequestSchema),
     defaultValues: {
       facilityId: currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '',
       stressLevel: undefined,
@@ -40,7 +40,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
-      reason: '',
+      reason: undefined, // Changed to undefined for Select placeholder
     },
   });
 
@@ -58,7 +58,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   }, [currentUser, getFacilityById, form]);
 
   useEffect(() => {
-    const stressLevelValue = watchedStressLevel as string | undefined; 
+    const stressLevelValue = watchedStressLevel as string | undefined;
     if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('route')) {
       form.setValue('routeId', undefined);
       if(form.formState.dirtyFields.routeId) form.clearErrors('routeId');
@@ -87,14 +87,14 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     const facility = getFacilityById(facilityId);
     setSelectedFacility(facility);
     form.setValue('facilityId', facilityId);
-    form.setValue('stressLevel', undefined); 
+    form.setValue('stressLevel', undefined);
     form.setValue('routeId', undefined);
     form.setValue('subclusterId', undefined);
     form.clearErrors('stressLevel');
     form.clearErrors('routeId');
     form.clearErrors('subclusterId');
   };
-  
+
   const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
     form.setValue('stressLevel', stressLevel);
     if (stressLevel && !stressLevel.toLowerCase().includes('route')) {
@@ -118,7 +118,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     if (data.extensionDays > maxExtensionDays) {
         form.setError('extensionDays', {
             type: 'manual',
-            message: `Extension days cannot exceed the admin-set limit of ${maxExtensionDays}.`
+            message: `Extension days cannot exceed ${maxExtensionDays}.`
         });
         toast({ title: "Validation Error", description: `Extension days cannot exceed ${maxExtensionDays}.`, variant: "destructive" });
         return;
@@ -140,9 +140,9 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
         subclusterName: subcluster?.name,
         startDate: data.startDate.toISOString(),
         extensionDays: data.extensionDays,
-        reason: data.reason,
+        reason: data.reason, // reason is now guaranteed to be one of the enum values
       };
-      
+
       const newRequest = await addStressRequest(requestPayload);
       if (newRequest) {
         toast({ title: "Success", description: "Stress request submitted successfully." });
@@ -153,7 +153,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
             subclusterId: undefined,
             startDate: undefined,
             extensionDays: 1,
-            reason: '',
+            reason: undefined,
         });
         if (currentUser?.role !== 'FacilityHead') setSelectedFacility(undefined);
 
@@ -168,7 +168,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       setIsSubmitting(false);
     }
   };
-  
+
   const facilityTypeForSelectors = selectedFacility?.type;
   const currentStressLevel = form.getValues('stressLevel') as string | undefined;
 
@@ -239,7 +239,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 )}
               />
             )}
-            
+
             {currentStressLevel && currentStressLevel.toLowerCase().includes('subcluster') && (
               <FormField
                 control={form.control}
@@ -256,17 +256,17 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 )}
               />
             )}
-            
+
             <FormField
               control={form.control}
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Stress Marking Start Date D(S)</FormLabel>
-                  <DatePicker 
-                    date={field.value} 
+                  <DatePicker
+                    date={field.value}
                     setDate={field.onChange}
-                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} 
+                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                   />
                   <FormMessage />
                 </FormItem>
@@ -280,14 +280,14 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 <FormItem>
                   <FormLabel>Extension Days T(Ex)</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="e.g., 7" 
-                      {...field} 
-                      onChange={e => field.onChange(parseInt(e.target.value,10) || 0)} 
+                    <Input
+                      type="number"
+                      placeholder="e.g., 7"
+                      {...field}
+                      onChange={e => field.onChange(parseInt(e.target.value,10) || 0)}
                       min={1}
                       max={maxExtensionDays} // HTML5 validation
-                      className="h-10" 
+                      className="h-10"
                     />
                   </FormControl>
                   <FormDescription>
@@ -297,17 +297,24 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="reason"
               render={({ field }) => (
                 <FormItem>
-                   <ReasonSuggestion
-                    reason={field.value || ''}
-                    onReasonChange={field.onChange}
-                    facilityType={selectedFacility?.type}
-                  />
+                  <FormLabel>Stress Reason</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select a reason" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Manpower Stress">Manpower Stress</SelectItem>
+                      <SelectItem value="Volume Stress">Volume Stress</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -323,4 +330,3 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
-
