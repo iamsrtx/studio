@@ -1,8 +1,9 @@
+
 'use client';
 
 import type { StressRequest, UserRole } from '@/lib/types';
 import StressRequestListItem from './StressRequestListItem';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area'; // Removed
 
 interface StressRequestListProps {
   requests: StressRequest[];
@@ -22,13 +23,11 @@ export default function StressRequestList({ requests, currentUserRole, title = "
   return (
     <div className="space-y-6">
       {title && <h2 className="text-2xl font-semibold font-headline mb-4">{title}</h2>}
-      <ScrollArea className="h-[calc(100vh-250px)]"> {/* Adjust height as needed */}
-        <div className="pr-4">
-        {requests.map((request) => (
-          <StressRequestListItem key={request.id} request={request} currentUserRole={currentUserRole} />
-        ))}
-        </div>
-      </ScrollArea>
+      {/* Removed ScrollArea and inner div with pr-4 */}
+      {requests.map((request) => (
+        <StressRequestListItem key={request.id} request={request} currentUserRole={currentUserRole} />
+      ))}
     </div>
   );
 }
+
