@@ -10,10 +10,7 @@ import {
   LayoutDashboard, 
   ClipboardPlus, 
   ListChecks, 
-  ShieldCheck, 
-  Building,
-  Users,
-  SettingsIcon
+  ShieldCheck
 } from 'lucide-react';
 import {
   Sidebar,
@@ -23,7 +20,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  // SidebarTrigger, // Removed as trigger is now in main Header
 } from '@/components/ui/sidebar';
 
 interface NavItem {
@@ -39,9 +35,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard/request/new', label: 'New Request', icon: ClipboardPlus, roles: ['Ops', 'FacilityHead'] },
   { href: '/dashboard/requests', label: 'View Requests', icon: ListChecks, roles: ['Ops', 'FacilityHead', 'Administrator'] },
   { href: '/dashboard/admin/approvals', label: 'Pending Approvals', icon: ShieldCheck, roles: ['Administrator'] },
-  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'], isRemoved: true },
-  { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'], isRemoved: true },
-  { href: '/dashboard/admin/settings', label: 'App Settings', icon: SettingsIcon, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/users', label: 'Manage Users', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/settings', label: 'App Settings', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
 ];
 
 export default function SidebarNav() {
@@ -53,13 +49,12 @@ export default function SidebarNav() {
   const filteredNavItems = navItems.filter(item => !item.isRemoved && item.roles.includes(currentRole));
 
   return (
-    <Sidebar collapsible="offcanvas" className="border-r"> {/* Changed from icon to offcanvas */}
+    <Sidebar collapsible="offcanvas" className="border-r">
         <SidebarHeader className="flex items-center justify-between p-2">
             <div className="p-2 text-sm font-semibold text-sidebar-foreground">Navigation</div>
-             {/* SidebarTrigger removed from here. Control is now in the main Header.tsx */}
         </SidebarHeader>
         <SidebarContent>
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full pt-4"> {/* Added pt-4 here */}
             <SidebarMenu>
                 {filteredNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
@@ -74,7 +69,6 @@ export default function SidebarNav() {
                     >
                       <Link href={item.href}>
                         <item.icon className="h-5 w-5 mr-3" />
-                        {/* Span is always visible when sidebar is open (not icon-only mode anymore for desktop) */}
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -83,7 +77,7 @@ export default function SidebarNav() {
             </SidebarMenu>
             </ScrollArea>
         </SidebarContent>
-        <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden group-data-[state=collapsed]:hidden"> {/* Hide footer when offcanvas and collapsed */}
+        <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden group-data-[state=collapsed]:hidden">
             <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} XB Stress Facility Manager</p>
         </SidebarFooter>
     </Sidebar>
