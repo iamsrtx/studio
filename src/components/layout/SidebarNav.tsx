@@ -13,7 +13,7 @@ import {
   ShieldCheck, 
   Building,
   Users,
-  SettingsIcon // Added SettingsIcon
+  SettingsIcon
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +31,7 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   roles: ('Ops' | 'FacilityHead' | 'Administrator')[];
+  isRemoved?: boolean; // Flag to easily filter out items
 }
 
 const navItems: NavItem[] = [
@@ -38,9 +39,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard/request/new', label: 'New Request', icon: ClipboardPlus, roles: ['Ops', 'FacilityHead'] },
   { href: '/dashboard/requests', label: 'View Requests', icon: ListChecks, roles: ['Ops', 'FacilityHead', 'Administrator'] },
   { href: '/dashboard/admin/approvals', label: 'Pending Approvals', icon: ShieldCheck, roles: ['Administrator'] },
-  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'] },
-  { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'] },
-  { href: '/dashboard/admin/settings', label: 'App Settings', icon: SettingsIcon, roles: ['Administrator'] }, // New Nav Item
+  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/settings', label: 'App Settings', icon: SettingsIcon, roles: ['Administrator'], isRemoved: true },
 ];
 
 export default function SidebarNav() {
@@ -49,7 +50,7 @@ export default function SidebarNav() {
 
   if (!currentRole || !currentUser) return null;
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
+  const filteredNavItems = navItems.filter(item => !item.isRemoved && item.roles.includes(currentRole));
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -87,3 +88,4 @@ export default function SidebarNav() {
     </Sidebar>
   );
 }
+
