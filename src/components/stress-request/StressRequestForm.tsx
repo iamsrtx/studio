@@ -311,7 +311,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Manpower Stress">Manpower Stress</SelectItem>
+                      <SelectItem value="Space Stress">Space Stress</SelectItem>
                       <SelectItem value="Volume Stress">Volume Stress</SelectItem>
                     </SelectContent>
                   </Select>

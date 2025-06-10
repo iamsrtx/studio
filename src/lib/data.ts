@@ -45,7 +45,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     routeName: 'FM Route Alpha',
     startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 5,
-    reason: 'Manpower Stress',
+    reason: 'Space Stress', // Updated
     submittedByUserId: 'user-fh-fm', 
     submittedByName: 'Parag', 
     submissionDate: new Date().toISOString(),
@@ -61,13 +61,13 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     subclusterName: 'South Subcluster',
     startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
     extensionDays: 7,
-    reason: 'Manpower Stress',
+    reason: 'Space Stress', // Updated
     submittedByUserId: 'user-ops-1',
     submittedByName: 'Subham', 
     submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), 
     status: 'Approved',
     adminApproverId: 'user-admin-1', 
-    adminComments: 'Approved due to critical manpower issues.',
+    adminComments: 'Approved due to critical space issues.', // Adjusted comment for context
     approvalDate: new Date().toISOString(),
   },
     {
@@ -90,4 +90,3 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [];
-
