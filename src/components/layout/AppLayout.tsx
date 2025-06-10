@@ -37,7 +37,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-1 overflow-hidden"> {/* overflow-hidden helps contain children and manage layout */}
           <SidebarNav /> {/* Sidebar, manages its own internal scrolling */}
           {/* SidebarInset is the main content area. It will take available width and scroll vertically if its content overflows. */}
-          <SidebarInset className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <SidebarInset className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 w-full max-w-screen-2xl mx-auto">
             {children}
           </SidebarInset>
         </div>
