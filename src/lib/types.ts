@@ -5,10 +5,10 @@ export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
 
 export type FacilityType = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
 
-export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Pincode';
-export type StressLevelLmDelivery = 'Subcluster' | 'Pincode';
-export type StressLevelRtoDto = 'Route' | 'Pincode';
-export type StressLevelRvpFacility = 'Pincode';
+export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Facility';
+export type StressLevelLmDelivery = 'Subcluster' | 'Facility';
+export type StressLevelRtoDto = 'Route' | 'Facility';
+export type StressLevelRvpFacility = 'Facility';
 
 export type StressLevel = StressLevelFmPickup | StressLevelLmDelivery | StressLevelRtoDto | StressLevelRvpFacility;
 

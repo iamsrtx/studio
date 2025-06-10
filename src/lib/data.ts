@@ -75,7 +75,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     facilityId: 'facility-3',
     facilityName: 'DEL/PTD',
     facilityType: 'RTO/DTO',
-    stressLevel: 'Pincode', 
+    stressLevel: 'Facility', 
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
     reason: 'Volume Stress',
