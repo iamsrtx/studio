@@ -29,7 +29,7 @@ export default function DashboardPage() {
     : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-screen-xl mx-auto">
       <h1 className="text-3xl font-bold font-headline">Welcome, {currentUser.name}!</h1>
       
       {currentRole === 'Ops' && (

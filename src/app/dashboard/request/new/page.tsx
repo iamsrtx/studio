@@ -24,7 +24,7 @@ export default function NewRequestPage() {
   };
 
   return (
-    <div>
+    <div className="max-w-screen-xl mx-auto">
       <StressRequestForm onSubmitSuccess={handleFormSuccess} />
     </div>
   );

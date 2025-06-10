@@ -28,7 +28,7 @@ export default function ViewRequestsPage() {
   displayedRequests.sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime());
 
   return (
-    <div>
+    <div className="max-w-screen-xl mx-auto">
       <StressRequestList requests={displayedRequests} currentUserRole={currentRole} title={title} />
     </div>
   );

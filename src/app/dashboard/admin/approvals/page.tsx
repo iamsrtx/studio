@@ -23,7 +23,7 @@ export default function AdminApprovalsPage() {
     .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime()); // Oldest first
 
   return (
-    <div>
+    <div className="max-w-screen-xl mx-auto">
       <StressRequestList requests={pendingRequests} currentUserRole="Administrator" title="Pending Stress Request Approvals" />
     </div>
   );

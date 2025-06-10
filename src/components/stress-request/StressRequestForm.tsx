@@ -40,7 +40,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
-      reason: undefined, 
+      reason: "Space Stress", 
     },
   });
 
@@ -153,7 +153,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
             subclusterId: undefined,
             startDate: undefined,
             extensionDays: 1,
-            reason: undefined,
+            reason: "Space Stress",
         });
         if (currentUser?.role !== 'FacilityHead') setSelectedFacility(undefined);
 
@@ -174,7 +174,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
 
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
+    <Card className="w-full shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Mark Facility as Stressed</CardTitle>
         <CardDescription>Fill in the details below to submit a stress marking request.</CardDescription>
