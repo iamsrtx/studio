@@ -40,7 +40,7 @@ export const MOCK_FACILITIES: Facility[] = [
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'],
     address: '789 East Rd, Anytown',
     assignedHeadId: 'user-fh-rto',
-    pincodes: [],
+    pincodes: ['110001'], // Added single pincode
   },
   {
     id: 'facility-4',
