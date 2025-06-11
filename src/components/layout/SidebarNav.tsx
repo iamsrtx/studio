@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/request/new', label: 'New Request', icon: ClipboardPlus, roles: ['Ops', 'FacilityHead'] },
   { href: '/dashboard/requests', label: 'View Requests', icon: ListChecks, roles: ['Ops', 'FacilityHead', 'Administrator'] },
   { href: '/dashboard/admin/approvals', label: 'Pending Approvals', icon: ShieldCheck, roles: ['Administrator'] },
-  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'], isRemoved: false }, // Changed isRemoved to false
+  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'], isRemoved: true }, // Changed isRemoved to true
   { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'], isRemoved: true },
   { href: '/dashboard/admin/settings', label: 'App Settings', icon: Settings, roles: ['Administrator'], isRemoved: true },
 ];
