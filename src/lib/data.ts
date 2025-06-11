@@ -1,6 +1,6 @@
 
-import type { User, Facility, StressRequest, FacilityType, Route, Subcluster, Notification } from './types';
-import { FACILITY_TYPE_TO_SHIPMENT_LEG } from './constants';
+import type { User, Facility, StressRequest, FacilityFunction, Route, Subcluster, Notification } from './types';
+import { FACILITY_FUNCTION_TO_SHIPMENT_LEG, FACILITY_FUNCTIONS } from './constants';
 
 export const MOCK_USERS: User[] = [
   { id: 'user-ops-1', name: 'Subham', email: 'subham.ops@example.com', role: 'Ops' },
@@ -12,11 +12,50 @@ export const MOCK_USERS: User[] = [
 ];
 
 export const MOCK_FACILITIES: Facility[] = [
-  { id: 'facility-1', name: 'PNQ/KHR', type: 'FM Pickup', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['FM Pickup'], address: '123 North St, Anytown', assignedHeadId: 'user-fh-fm' },
-  { id: 'facility-2', name: 'PNQ/CHK', type: 'LM Delivery', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['LM Delivery'], address: '456 South Ave, Anytown', assignedHeadId: 'user-fh-lm' },
-  { id: 'facility-3', name: 'DEL/PTD', type: 'RTO/DTO', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['RTO/DTO'], address: '789 East Rd, Anytown', assignedHeadId: 'user-fh-rto' },
-  { id: 'facility-4', name: 'PNQ/Dummy', type: 'RVP Facility', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['RVP Facility'], address: '101 West Ln, Anytown', assignedHeadId: 'user-fh-rvp' },
-  { id: 'facility-5', name: 'Central Depot - FM Pickup', type: 'FM Pickup', shipmentLeg: FACILITY_TYPE_TO_SHIPMENT_LEG['FM Pickup'], address: '202 Center Blvd, Anytown' },
+  { 
+    id: 'facility-1', 
+    name: 'PNQ/KHR', 
+    type: 'FM Pickup', // Primary function
+    availableFunctions: ['FM Pickup', 'RTO/DTO'], // Multi-functional
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], // Primary shipment leg
+    address: '123 North St, Anytown', 
+    assignedHeadId: 'user-fh-fm' 
+  },
+  { 
+    id: 'facility-2', 
+    name: 'PNQ/CHK', 
+    type: 'LM Delivery', 
+    availableFunctions: ['LM Delivery'],
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'], 
+    address: '456 South Ave, Anytown', 
+    assignedHeadId: 'user-fh-lm' 
+  },
+  { 
+    id: 'facility-3', 
+    name: 'DEL/PTD', 
+    type: 'RTO/DTO', 
+    availableFunctions: ['RTO/DTO'],
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'], 
+    address: '789 East Rd, Anytown', 
+    assignedHeadId: 'user-fh-rto' 
+  },
+  { 
+    id: 'facility-4', 
+    name: 'PNQ/Dummy', 
+    type: 'RVP Facility', 
+    availableFunctions: ['RVP Facility'],
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RVP Facility'], 
+    address: '101 West Ln, Anytown', 
+    assignedHeadId: 'user-fh-rvp' 
+  },
+  { 
+    id: 'facility-5', 
+    name: 'Central Depot - FM Pickup', 
+    type: 'FM Pickup', 
+    availableFunctions: ['FM Pickup'],
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], 
+    address: '202 Center Blvd, Anytown' 
+  },
 ];
 
 export const MOCK_ROUTES: Route[] = [
@@ -39,7 +78,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     id: 'req-1',
     facilityId: 'facility-1',
     facilityName: 'PNQ/KHR',
-    facilityType: 'FM Pickup',
+    facilityFunctionContext: 'FM Pickup', // Updated from facilityType
     stressLevel: 'Route',
     routeId: 'route-fm-1',
     routeName: 'FM Route Alpha',
@@ -55,7 +94,7 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     id: 'req-2',
     facilityId: 'facility-2',
     facilityName: 'PNQ/CHK',
-    facilityType: 'LM Delivery',
+    facilityFunctionContext: 'LM Delivery', // Updated from facilityType
     stressLevel: 'Subcluster',
     subclusterId: 'sc-south',
     subclusterName: 'South Subcluster',
@@ -74,11 +113,11 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     id: 'req-3',
     facilityId: 'facility-3',
     facilityName: 'DEL/PTD',
-    facilityType: 'RTO/DTO',
+    facilityFunctionContext: 'RTO/DTO', // Updated from facilityType
     stressLevel: 'Facility', 
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
-    reason: 'Space Stress', // Updated from Volume Stress
+    reason: 'Space Stress', 
     submittedByUserId: 'user-fh-rto', 
     submittedByName: 'Priya', 
     submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -90,4 +129,3 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [];
-

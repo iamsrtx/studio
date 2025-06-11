@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { StressRequest, UserRole } from '@/lib/types';
 import { useAppContext } from '@/contexts/AppContext';
-import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge, Settings2 } from 'lucide-react'; // Added Settings2
 import { useToast } from '@/hooks/use-toast';
 
 interface StressRequestListItemProps {
@@ -54,7 +54,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       case 'Approved': return 'default'; 
       case 'Rejected': return 'destructive';
       case 'Pending': return 'secondary';
-      case 'Merged': return 'outline'; // Using 'outline' for Merged, can be customized
+      case 'Merged': return 'outline'; 
       default: return 'outline';
     }
   };
@@ -85,7 +85,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InfoItem icon={Building} label="Facility Type" value={request.facilityType} />
+          <InfoItem icon={Settings2} label="Operating Function" value={request.facilityFunctionContext} /> {/* Changed Building to Settings2, label, value */}
           <InfoItem icon={Layers} label="Stress Level" value={request.stressLevel} />
           {request.routeName && <InfoItem icon={MapPinned} label="Route" value={request.routeName} />}
           {request.subclusterName && <InfoItem icon={Boxes} label="Subcluster" value={request.subclusterName} />}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/AppContext';
@@ -47,7 +48,10 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p><strong>Type:</strong> {assignedFacility.type}</p>
+                <p><strong>Primary Function:</strong> {assignedFacility.type}</p>
+                {assignedFacility.availableFunctions.length > 1 && (
+                  <p><strong>Other Functions:</strong> {assignedFacility.availableFunctions.filter(fn => fn !== assignedFacility.type).join(', ')}</p>
+                )}
                 <p><strong>Address:</strong> {assignedFacility.address}</p>
               </CardContent>
             </Card>

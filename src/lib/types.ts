@@ -3,7 +3,8 @@ export type UserRole = 'Ops' | 'FacilityHead' | 'Administrator';
 
 export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
 
-export type FacilityType = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
+// Renamed from FacilityType
+export type FacilityFunction = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
 
 export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Facility';
 export type StressLevelLmDelivery = 'Subcluster' | 'Facility';
@@ -15,11 +16,12 @@ export type StressLevel = StressLevelFmPickup | StressLevelLmDelivery | StressLe
 export interface Facility {
   id: string;
   name: string;
-  type: FacilityType;
-  shipmentLeg: ShipmentLeg;
+  type: FacilityFunction; // Primary or default function
+  availableFunctions: FacilityFunction[]; // All functions this facility can perform
+  shipmentLeg: ShipmentLeg; // This might need re-evaluation if functions have different legs
   address: string;
   assignedHeadId?: string;
-  coLocatedWith?: string; // ID of another facility if co-located
+  coLocatedWith?: string; 
 }
 
 export interface User {
@@ -27,42 +29,40 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  assignedFacilityId?: string; // For FacilityHead
+  assignedFacilityId?: string; 
 }
 
 export interface Route {
   id: string;
   name: string;
-  type: string; // e.g., 'Pickup', 'Delivery', 'Linehaul', 'Transfer'
-  // facilityType?: FacilityType; // Could be used for filtering if routes are type-specific
+  type: string; 
 }
 
 export interface Subcluster {
   id: string;
   name: string;
-  // facilityType?: FacilityType; // Could be used for filtering if subclusters are type-specific
 }
 
 export interface StressRequest {
   id: string;
   facilityId: string;
   facilityName: string;
-  facilityType: FacilityType;
+  facilityFunctionContext: FacilityFunction; // The function under which this stress request is made
   stressLevel: StressLevel;
   routeId?: string;
   routeName?: string;
   subclusterId?: string;
   subclusterName?: string;
-  startDate: string; // ISO string
+  startDate: string; 
   extensionDays: number;
   reason?: string;
   submittedByUserId: string;
   submittedByName: string;
-  submissionDate: string; // ISO string
+  submissionDate: string; 
   status: 'Pending' | 'Approved' | 'Rejected' | 'Merged';
   adminApproverId?: string;
   adminComments?: string;
-  approvalDate?: string; // ISO string
+  approvalDate?: string; 
 }
 
 export interface StressLevelOption {
@@ -72,11 +72,10 @@ export interface StressLevelOption {
 
 export interface Notification {
   id: string;
-  userId: string; // The ID of the user this notification is for
+  userId: string; 
   message: string;
-  timestamp: string; // ISO string
+  timestamp: string; 
   isRead: boolean;
-  relatedRequestId?: string; // Optional ID of the stress request this notification pertains to
-  link?: string; // Optional link for navigation
+  relatedRequestId?: string; 
+  link?: string; 
 }
-

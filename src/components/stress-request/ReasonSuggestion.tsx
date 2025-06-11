@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -5,21 +6,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Wand2, Loader2 } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
-import type { FacilityType } from "@/lib/types";
+import type { FacilityFunction } from "@/lib/types"; // Changed FacilityType to FacilityFunction
 
 interface ReasonSuggestionProps {
   reason: string;
   onReasonChange: (reason: string) => void;
-  facilityType: FacilityType | undefined;
+  facilityFunction: FacilityFunction | undefined; // Changed from facilityType
   disabled?: boolean;
 }
 
-export default function ReasonSuggestion({ reason, onReasonChange, facilityType, disabled }: ReasonSuggestionProps) {
+export default function ReasonSuggestion({ reason, onReasonChange, facilityFunction, disabled }: ReasonSuggestionProps) {
   const { fetchAiReason, isLoadingAiReason } = useAppContext();
 
   const handleSuggestReason = async () => {
-    if (!facilityType) return;
-    const suggestedReason = await fetchAiReason(facilityType);
+    if (!facilityFunction) return;
+    const suggestedReason = await fetchAiReason(facilityFunction);
     onReasonChange(suggestedReason);
   };
 
@@ -32,7 +33,7 @@ export default function ReasonSuggestion({ reason, onReasonChange, facilityType,
           variant="outline"
           size="sm"
           onClick={handleSuggestReason}
-          disabled={disabled || isLoadingAiReason || !facilityType}
+          disabled={disabled || isLoadingAiReason || !facilityFunction}
           className="text-xs"
         >
           {isLoadingAiReason ? (

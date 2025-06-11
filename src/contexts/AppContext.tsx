@@ -3,11 +3,13 @@
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { User, Facility, StressRequest, UserRole, FacilityType, Route, Subcluster, Notification } from '@/lib/types';
+import type { User, Facility, StressRequest, UserRole, FacilityFunction, Route, Subcluster, Notification, StressLevel } from '@/lib/types'; // FacilityType -> FacilityFunction
 import { MOCK_USERS, MOCK_FACILITIES, MOCK_STRESS_REQUESTS, MOCK_ROUTES, MOCK_SUBCLUSTERS, MOCK_NOTIFICATIONS } from '@/lib/data';
 import { suggestStressReason as suggestStressReasonFlow } from '@/ai/flows/suggest-stress-reason';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { STRESS_LEVELS_MAP } from '@/lib/constants';
+
 
 interface AppContextType {
   currentUser: User | null;
@@ -23,7 +25,7 @@ interface AppContextType {
   addStressRequest: (requestData: Omit<StressRequest, 'id' | 'submissionDate' | 'status' | 'submittedByUserId' | 'submittedByName'>) => Promise<StressRequest | null>;
   updateStressRequestStatus: (requestId: string, status: 'Approved' | 'Rejected', adminComments?: string) => Promise<void>;
   isLoadingAiReason: boolean;
-  fetchAiReason: (facilityType: FacilityType) => Promise<string>;
+  fetchAiReason: (facilityFunction: FacilityFunction) => Promise<string>; // FacilityType -> FacilityFunction
   getFacilityById: (id: string) => Facility | undefined;
   getUserById: (id: string) => User | undefined;
   getRouteById: (id: string) => Route | undefined;
@@ -113,7 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return null;
     }
     const newRequest: StressRequest = {
-      ...requestData,
+      ...requestData, // facilityFunctionContext is now part of requestData
       id: `req-${Date.now()}`,
       submissionDate: new Date().toISOString(),
       status: 'Pending',
@@ -125,7 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     MOCK_USERS.filter(user => user.role === 'Administrator').forEach(admin => {
       internalAddNotification({
         userId: admin.id,
-        message: `New stress request for ${newRequest.facilityName} needs approval.`,
+        message: `New stress request for ${newRequest.facilityName} (${newRequest.facilityFunctionContext}) needs approval.`,
         relatedRequestId: newRequest.id,
         isRead: false,
         link: `/dashboard/admin/approvals` 
@@ -140,9 +142,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    let requestToApprove = stressRequests.find(req => req.id === requestId);
-    if (!requestToApprove) {
-      console.error("Request to update/approve not found");
+    let requestToUpdate = stressRequests.find(req => req.id === requestId);
+    if (!requestToUpdate) {
+      console.error("Request to update not found");
       return;
     }
     
@@ -151,16 +153,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (status === 'Approved') {
       const existingActiveRequest = stressRequests.find(req => {
         if (req.id === requestId || req.status !== 'Approved') return false;
-        if (req.facilityId !== requestToApprove!.facilityId) return false;
+        if (req.facilityId !== requestToUpdate!.facilityId) return false;
+        if (req.facilityFunctionContext !== requestToUpdate!.facilityFunctionContext) return false;
 
-        const toApproveStressLevel = requestToApprove!.stressLevel.toLowerCase();
+
+        const toUpdateStressLevel = requestToUpdate!.stressLevel.toLowerCase();
         const existingReqStressLevel = req.stressLevel.toLowerCase();
 
-        if (toApproveStressLevel.includes('route')) {
-          if (!existingReqStressLevel.includes('route') || req.routeId !== requestToApprove!.routeId) return false;
-        } else if (toApproveStressLevel.includes('subcluster')) {
-          if (!existingReqStressLevel.includes('subcluster') || req.subclusterId !== requestToApprove!.subclusterId) return false;
-        } else { // Pincode level for requestToApprove
+        if (toUpdateStressLevel.includes('route')) {
+          if (!existingReqStressLevel.includes('route') || req.routeId !== requestToUpdate!.routeId) return false;
+        } else if (toUpdateStressLevel.includes('subcluster')) {
+          if (!existingReqStressLevel.includes('subcluster') || req.subclusterId !== requestToUpdate!.subclusterId) return false;
+        } else { 
           if (existingReqStressLevel.includes('route') || existingReqStressLevel.includes('subcluster')) return false;
         }
 
@@ -180,9 +184,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const existingOrigEndDate = new Date(existingOrigStartDate);
         existingOrigEndDate.setDate(existingOrigStartDate.getDate() + existingActiveRequest.extensionDays);
 
-        const newReqStartDate = new Date(requestToApprove.startDate);
+        const newReqStartDate = new Date(requestToUpdate.startDate);
         const newReqEndDate = new Date(newReqStartDate);
-        newReqEndDate.setDate(newReqStartDate.getDate() + requestToApprove.extensionDays);
+        newReqEndDate.setDate(newReqStartDate.getDate() + requestToUpdate.extensionDays);
 
         const finalStartDate = existingOrigStartDate < newReqStartDate ? existingOrigStartDate : newReqStartDate;
         const finalEndDate = existingOrigEndDate > newReqEndDate ? existingOrigEndDate : newReqEndDate;
@@ -190,7 +194,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const timeDiff = finalEndDate.getTime() - finalStartDate.getTime();
         const totalNewExtensionDays = Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
 
-        const commentForExisting = `Extended/Updated on ${format(new Date(currentApprovalDate), 'PPP')} by ${currentUser.name} (merging request ${requestToApprove.id}). Admin note: ${adminCommentsInput || '-'}.`;
+        const commentForExisting = `Extended/Updated on ${format(new Date(currentApprovalDate), 'PPP')} by ${currentUser.name} (merging request ${requestToUpdate.id}). Admin note: ${adminCommentsInput || '-'}.`;
         const updatedExistingRequest = {
           ...existingActiveRequest,
           startDate: finalStartDate.toISOString(),
@@ -201,7 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         
         const mergedRequest = {
-            ...requestToApprove,
+            ...requestToUpdate,
             status: 'Merged' as 'Merged',
             adminComments: `Request approved; its period was merged into existing stress marking ${existingActiveRequest.id}. Admin comment for this action: ${adminCommentsInput || 'None'}`.trim(),
             adminApproverId: currentAdminApproverId,
@@ -217,19 +221,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           })
         );
 
-        if (existingActiveRequest.submittedByUserId !== requestToApprove.submittedByUserId) {
+        if (existingActiveRequest.submittedByUserId !== requestToUpdate.submittedByUserId) {
              internalAddNotification({
                 userId: existingActiveRequest.submittedByUserId,
-                message: `The stress period for ${existingActiveRequest.facilityName} (ID: ${existingActiveRequest.id}) has been updated. New end date: ${format(finalEndDate, 'PPP')}.`,
+                message: `The stress period for ${existingActiveRequest.facilityName} (${existingActiveRequest.facilityFunctionContext}) has been updated. New end date: ${format(finalEndDate, 'PPP')}.`,
                 relatedRequestId: existingActiveRequest.id,
                 isRead: false,
                 link: `/dashboard/requests`
             });
         }
          internalAddNotification({
-            userId: requestToApprove.submittedByUserId,
-            message: `Your stress request for ${requestToApprove.facilityName} was approved and merged. Facility stressed until ${format(finalEndDate, 'PPP')}.`,
-            relatedRequestId: requestToApprove.id,
+            userId: requestToUpdate.submittedByUserId,
+            message: `Your stress request for ${requestToUpdate.facilityName} (${requestToUpdate.facilityFunctionContext}) was approved and merged. Facility stressed until ${format(finalEndDate, 'PPP')}.`,
+            relatedRequestId: requestToUpdate.id,
             isRead: false,
             link: `/dashboard/requests`
         });
@@ -248,7 +252,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
          if (finalUpdatedRequestForNotification) {
             internalAddNotification({
                 userId: finalUpdatedRequestForNotification.submittedByUserId,
-                message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} has been ${status}.`,
+                message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} (${finalUpdatedRequestForNotification.facilityFunctionContext}) has been ${status}.`,
                 relatedRequestId: finalUpdatedRequestForNotification.id,
                 isRead: false,
                 link: `/dashboard/requests`
@@ -268,7 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
        if (finalUpdatedRequestForNotification) {
          internalAddNotification({
             userId: finalUpdatedRequestForNotification.submittedByUserId,
-            message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} has been ${status}.`,
+            message: `Your stress request for ${finalUpdatedRequestForNotification.facilityName} (${finalUpdatedRequestForNotification.facilityFunctionContext}) has been ${status}.`,
             relatedRequestId: finalUpdatedRequestForNotification.id,
             isRead: false,
             link: `/dashboard/requests`
@@ -277,10 +281,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
   
-  const fetchAiReason = async (facilityType: FacilityType): Promise<string> => {
+  const fetchAiReason = async (facilityFunction: FacilityFunction): Promise<string> => { // Changed facilityType to facilityFunction
     setIsLoadingAiReason(true);
     try {
-      const result = await suggestStressReasonFlow({ facilityType });
+      const result = await suggestStressReasonFlow({ facilityFunction }); // Pass facilityFunction
       return result.reason;
     } catch (error) {
       console.error("Error fetching AI reason:", error);
