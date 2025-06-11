@@ -45,7 +45,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       stressLevel: undefined,
       routeId: undefined,
       subclusterId: undefined,
-      pincode: undefined, // Added pincode default
+      pincode: undefined,
       startDate: undefined,
       extensionDays: 1,
       reason: undefined,
@@ -101,11 +101,12 @@ useEffect(() => {
       } else {
         const currentStressLevel = form.getValues('stressLevel');
         if (currentStressLevel && (!stressOptions || !stressOptions.find(opt => opt.value === currentStressLevel))) {
-          newStressLevelToSet = undefined;
+          // If current stress level is no longer valid for the new function, reset it.
+          // Keep it if it's still valid to allow user's previous choice if they toggle functions.
         }
       }
     } else {
-      newStressLevelToSet = undefined;
+      newStressLevelToSet = undefined; // No function context, no stress level
     }
 
     if (form.getValues('stressLevel') !== newStressLevelToSet) {
@@ -113,6 +114,8 @@ useEffect(() => {
     }
 
     // Reset fields dependent on stressLevel if facilityFunctionContext changes
+    // or if stressLevel itself becomes undefined.
+    // This handles cases where function context changes AND where stress level is cleared (e.g. by function context becoming undefined)
     if (form.getValues('routeId') !== undefined) {
       form.setValue('routeId', undefined, {shouldDirty: true});
     }
@@ -172,7 +175,8 @@ useEffect(() => {
 
 
   const handleFacilityChange = (facilityId: string) => {
-    form.setValue('facilityId', facilityId, { shouldValidate: true, shouldDirty: true });
+    form.setValue('facilityId', facilityId, { shouldDirty: true });
+    // Validation will be triggered by Zod resolver based on dependent field changes
   };
 
 
@@ -204,7 +208,7 @@ useEffect(() => {
         routeName: route?.name,
         subclusterId: data.subclusterId,
         subclusterName: subcluster?.name,
-        pincode: data.pincode, // Added pincode
+        pincode: data.pincode,
         startDate: data.startDate.toISOString(),
         extensionDays: data.extensionDays,
         reason: data.reason,
@@ -221,7 +225,7 @@ useEffect(() => {
             stressLevel: undefined,
             routeId: undefined,
             subclusterId: undefined,
-            pincode: undefined, // Reset pincode
+            pincode: undefined,
             startDate: undefined,
             extensionDays: 1,
             reason: undefined,
@@ -294,16 +298,17 @@ useEffect(() => {
                   >
                     <FormControl>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select operating function..." />
+                        <SelectValue placeholder={!currentFacilityForUI ? "Select facility first" : "Select operating function..."} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {currentAvailableFunctionsForUI.map(fn => (
                         <SelectItem key={fn} value={fn}>{fn}</SelectItem>
                       ))}
+                       {!currentAvailableFunctionsForUI.length && currentFacilityForUI && <SelectItem value="no-functions" disabled>No functions for this facility</SelectItem>}
                     </SelectContent>
                   </Select>
-                  {currentAvailableFunctionsForUI.length <=1 && currentFacilityForUI &&
+                  {currentAvailableFunctionsForUI.length === 1 && currentFacilityForUI &&
                     <FormDescription>Auto-selected based on facility's function(s).</FormDescription>
                   }
                   <FormMessage />
@@ -321,8 +326,11 @@ useEffect(() => {
                     facilityFunction={watchedFacilityFunctionContext}
                     selectedStressLevel={field.value}
                     onStressLevelChange={(value) => field.onChange(value as StressLevel)}
-                    disabled={!currentFacilityForUI || !watchedFacilityFunctionContext}
+                    disabled={!currentFacilityForUI || !watchedFacilityFunctionContext || (STRESS_LEVELS_MAP[watchedFacilityFunctionContext!]?.length <= 1)}
                   />
+                   {STRESS_LEVELS_MAP[watchedFacilityFunctionContext!]?.length === 1 && watchedFacilityFunctionContext &&
+                    <FormDescription>Auto-selected based on facility function.</FormDescription>
+                  }
                   <FormMessage />
                 </FormItem>
               )}
@@ -449,3 +457,5 @@ useEffect(() => {
     </Card>
   );
 }
+
+    

@@ -20,7 +20,7 @@ export const MOCK_FACILITIES: Facility[] = [
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], // Primary shipment leg
     address: '123 North St, Anytown',
     assignedHeadId: 'user-fh-fm',
-    pincodes: [], // FM Pickup might not use pincode stress level this way
+    pincodes: ['411018'], 
   },
   {
     id: 'facility-2',
@@ -30,7 +30,7 @@ export const MOCK_FACILITIES: Facility[] = [
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'],
     address: '456 South Ave, Anytown',
     assignedHeadId: 'user-fh-lm',
-    pincodes: ['411001', '411002', '411003', '411014'], // Sample pincodes for LM Delivery
+    pincodes: ['411001', '411002', '411003', '411014'], 
   },
   {
     id: 'facility-3',
@@ -40,7 +40,7 @@ export const MOCK_FACILITIES: Facility[] = [
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'],
     address: '789 East Rd, Anytown',
     assignedHeadId: 'user-fh-rto',
-    pincodes: ['110001'], // Added single pincode
+    pincodes: ['110001'], 
   },
   {
     id: 'facility-4',
@@ -50,7 +50,7 @@ export const MOCK_FACILITIES: Facility[] = [
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RVP Facility'],
     address: '101 West Ln, Anytown',
     assignedHeadId: 'user-fh-rvp',
-    pincodes: [],
+    pincodes: ['411019', '411020'],
   },
   {
     id: 'facility-5',
@@ -59,16 +59,16 @@ export const MOCK_FACILITIES: Facility[] = [
     availableFunctions: ['FM Pickup'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'],
     address: '202 Center Blvd, Anytown',
-    pincodes: [],
+    pincodes: ['400001'],
   },
   {
     id: 'facility-6',
-    name: 'PUN/WAK', // New facility for testing single pincode
+    name: 'PUN/WAK', 
     type: 'LM Delivery',
     availableFunctions: ['LM Delivery'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'],
     address: '777 Wakad Rd, Pune',
-    pincodes: ['411057'], // Single pincode
+    pincodes: ['411057'], 
   },
 ];
 
@@ -158,3 +158,5 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [];
+
+    
