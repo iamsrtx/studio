@@ -10,7 +10,10 @@ import {
   LayoutDashboard, 
   ClipboardPlus, 
   ListChecks, 
-  ShieldCheck
+  ShieldCheck,
+  Settings, // Added for App Settings
+  Users, // Added for Manage Users
+  Building // Added for Manage Facilities
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,9 +38,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard/request/new', label: 'New Request', icon: ClipboardPlus, roles: ['Ops', 'FacilityHead'] },
   { href: '/dashboard/requests', label: 'View Requests', icon: ListChecks, roles: ['Ops', 'FacilityHead', 'Administrator'] },
   { href: '/dashboard/admin/approvals', label: 'Pending Approvals', icon: ShieldCheck, roles: ['Administrator'] },
-  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
-  { href: '/dashboard/admin/users', label: 'Manage Users', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
-  { href: '/dashboard/admin/settings', label: 'App Settings', icon: LayoutDashboard, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/facilities', label: 'Manage Facilities', icon: Building, roles: ['Administrator'], isRemoved: false }, // Changed isRemoved to false
+  { href: '/dashboard/admin/users', label: 'Manage Users', icon: Users, roles: ['Administrator'], isRemoved: true },
+  { href: '/dashboard/admin/settings', label: 'App Settings', icon: Settings, roles: ['Administrator'], isRemoved: true },
 ];
 
 export default function SidebarNav() {
@@ -78,7 +81,7 @@ export default function SidebarNav() {
             </ScrollArea>
         </SidebarContent>
         <SidebarFooter className="p-2 group-data-[collapsible=icon]:hidden group-data-[state=collapsed]:hidden">
-            <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} XB Stress Facility Manager</p>
+            <p className="text-xs text-sidebar-foreground/70">© {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME || "XB Stress Facility Manager"}</p>
         </SidebarFooter>
     </Sidebar>
   );
