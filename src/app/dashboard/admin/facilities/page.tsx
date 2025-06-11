@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, PlusCircle, Edit } from 'lucide-react';
+import { Building, PlusCircle, Edit, MapPin } from 'lucide-react';
 
 export default function ManageFacilitiesPage() {
   const { currentRole, facilities } = useAppContext();
@@ -50,6 +50,12 @@ export default function ManageFacilitiesPage() {
                 <TableHead>Available Functions</TableHead>
                 <TableHead>Shipment Leg</TableHead>
                 <TableHead>Address</TableHead>
+                <TableHead>
+                  <div className="flex items-center">
+                    <MapPin className="mr-1 h-4 w-4 text-muted-foreground" />
+                    Associated Pincodes
+                  </div>
+                </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -60,6 +66,11 @@ export default function ManageFacilitiesPage() {
                   <TableCell>{facility.availableFunctions.join(', ')}</TableCell>
                   <TableCell>{facility.shipmentLeg}</TableCell>
                   <TableCell>{facility.address}</TableCell>
+                  <TableCell>
+                    {facility.pincodes && facility.pincodes.length > 0
+                      ? facility.pincodes.join(', ')
+                      : 'N/A'}
+                  </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => handleEditFacility(facility.id)}>
                       <Edit className="mr-2 h-4 w-4" /> Edit
