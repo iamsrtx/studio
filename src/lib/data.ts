@@ -50,7 +50,7 @@ export const MOCK_FACILITIES: Facility[] = [
   },
   {
     id: 'facility-5',
-    name: 'Central Depot - FM Pickup',
+    name: 'MUM/BHW', // Changed from 'Central Depot - FM Pickup'
     type: 'FM Pickup',
     availableFunctions: ['FM Pickup'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'],
