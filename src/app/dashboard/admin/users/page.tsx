@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/AppContext';
@@ -25,7 +26,7 @@ export default function ManageUsersPage() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-screen-xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-2xl font-headline">Manage Users</CardTitle>
          <Button variant="outline">
