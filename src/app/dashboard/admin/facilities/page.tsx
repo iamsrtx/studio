@@ -37,7 +37,7 @@ export default function ManageFacilitiesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Available Functions</TableHead>
                 <TableHead>Shipment Leg</TableHead>
                 <TableHead>Address</TableHead>
                 <TableHead>Actions</TableHead>
@@ -47,7 +47,7 @@ export default function ManageFacilitiesPage() {
               {facilities.map((facility) => (
                 <TableRow key={facility.id}>
                   <TableCell>{facility.name}</TableCell>
-                  <TableCell>{facility.type}</TableCell>
+                  <TableCell>{facility.availableFunctions.join(', ')}</TableCell>
                   <TableCell>{facility.shipmentLeg}</TableCell>
                   <TableCell>{facility.address}</TableCell>
                   <TableCell>
