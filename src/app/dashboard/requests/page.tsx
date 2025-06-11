@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, isValid, startOfDay, endOfDay } from 'date-fns';
-import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge, Settings2, ShieldQuestion, FileDown, FilterX, SlidersHorizontal } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge, Settings2, ShieldQuestion, FileDown, FilterX, SlidersHorizontal, Pin } from 'lucide-react'; // Added Pin
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DatePicker } from '@/components/ui/date-picker';
@@ -57,7 +57,7 @@ export default function ViewRequestsPage() {
       initialFilteredRequests = stressRequests.filter(req => req.submittedByUserId === currentUser.id || req.facilityId === currentUser.assignedFacilityId);
       pageTitle = "My Facility Stress Requests";
     }
-    
+
     initialFilteredRequests.sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime());
     setAllRequestsForRole(initialFilteredRequests);
     setTitle(pageTitle);
@@ -84,10 +84,10 @@ export default function ViewRequestsPage() {
 
   const getStatusBadgeVariant = (status: StressRequest['status']) => {
     switch (status) {
-      case 'Approved': return 'default'; 
+      case 'Approved': return 'default';
       case 'Rejected': return 'destructive';
       case 'Pending': return 'secondary';
-      case 'Merged': return 'outline'; 
+      case 'Merged': return 'outline';
       default: return 'outline';
     }
   };
@@ -105,7 +105,7 @@ export default function ViewRequestsPage() {
   const openActionDialog = (request: StressRequest, type: 'approve' | 'reject') => {
     setSelectedRequestForAction(request);
     setActionType(type);
-    setAdminComments(''); 
+    setAdminComments('');
     setIsActionDialogOpen(true);
   };
 
@@ -135,25 +135,29 @@ export default function ViewRequestsPage() {
     if (displayedRequests.length === 0) return;
 
     const headers = [
-      "Request ID", "Facility Name", "Operating Function", "Stress Level", 
-      "Scope Type", "Scope Name", "Start Date D(S)", "Extension Days T(Ex)", 
-      "Reason", "Submitted By", "Submitted On", "Status", 
+      "Request ID", "Facility Name", "Operating Function", "Stress Level",
+      "Scope Type", "Scope Name/Pincode", "Start Date D(S)", "Extension Days T(Ex)",
+      "Reason", "Submitted By", "Submitted On", "Status",
       "Processed By (Admin)", "Admin Comments", "Processed Date"
     ];
 
     const rows = displayedRequests.map(req => {
       const submittedByUser = getUserById(req.submittedByUserId);
       const adminApprover = req.adminApproverId ? getUserById(req.adminApproverId) : null;
-      
+
       let scopeType = 'N/A';
       let scopeName = 'N/A';
-      if (req.routeName) {
+      if (req.stressLevel === 'Pincode' && req.pincode) {
+        scopeType = 'Pincode';
+        scopeName = req.pincode;
+      } else if (req.routeName) {
         scopeType = 'Route';
         scopeName = req.routeName;
       } else if (req.subclusterName) {
         scopeType = 'Subcluster';
         scopeName = req.subclusterName;
       }
+
 
       return [
         req.id,
@@ -196,7 +200,7 @@ export default function ViewRequestsPage() {
   if (!currentUser || !currentRole) {
     return <p className="text-center py-10 text-muted-foreground">Loading user data...</p>;
   }
-  
+
   const hasActiveFilters = filterDateFrom || filterDateTo || filterFacilityId !== 'all';
 
   return (
@@ -218,8 +222,8 @@ export default function ViewRequestsPage() {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
             <Label htmlFor="filter-date-from">Submission Date From</Label>
-            <DatePicker 
-              date={filterDateFrom} 
+            <DatePicker
+              date={filterDateFrom}
               setDate={setFilterDateFrom}
               placeholder="Start date"
               className="w-full"
@@ -227,8 +231,8 @@ export default function ViewRequestsPage() {
           </div>
           <div>
             <Label htmlFor="filter-date-to">Submission Date To</Label>
-            <DatePicker 
-              date={filterDateTo} 
+            <DatePicker
+              date={filterDateTo}
               setDate={setFilterDateTo}
               placeholder="End date"
               disabled={(date) => filterDateFrom ? date < filterDateFrom : false}
@@ -255,7 +259,7 @@ export default function ViewRequestsPage() {
           </Button>
         </CardContent>
       </Card>
-      
+
       {displayedRequests.length === 0 ? (
         <div className="text-center py-10 border rounded-lg shadow-sm bg-card">
           <ShieldQuestion className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
@@ -273,7 +277,7 @@ export default function ViewRequestsPage() {
                   <TableHead>Facility</TableHead>
                   <TableHead>Function</TableHead>
                   <TableHead>Level</TableHead>
-                  <TableHead>Scope</TableHead>
+                  <TableHead>Scope / Pincode</TableHead>
                   <TableHead>Start Date</TableHead>
                   <TableHead>Ext. Days</TableHead>
                   <TableHead>Reason</TableHead>
@@ -287,14 +291,21 @@ export default function ViewRequestsPage() {
                 {displayedRequests.map((request) => {
                   const submittedByUser = getUserById(request.submittedByUserId);
                   const adminApprover = request.adminApproverId ? getUserById(request.adminApproverId) : null;
+                  let scopeDisplay = 'N/A';
+                  if (request.stressLevel === 'Pincode' && request.pincode) {
+                    scopeDisplay = `Pincode: ${request.pincode}`;
+                  } else if (request.routeName) {
+                    scopeDisplay = `Route: ${request.routeName}`;
+                  } else if (request.subclusterName) {
+                    scopeDisplay = `SC: ${request.subclusterName}`;
+                  }
+
                   return (
                     <TableRow key={request.id}>
                       <TableCell className="font-medium">{request.facilityName}</TableCell>
                       <TableCell>{request.facilityFunctionContext}</TableCell>
                       <TableCell>{request.stressLevel}</TableCell>
-                      <TableCell>
-                        {request.routeName ? `Route: ${request.routeName}` : request.subclusterName ? `SC: ${request.subclusterName}` : 'N/A'}
-                      </TableCell>
+                      <TableCell>{scopeDisplay}</TableCell>
                       <TableCell>{format(parseISO(request.startDate), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="text-center">{request.extensionDays}</TableCell>
                       <TableCell>
@@ -364,8 +375,8 @@ export default function ViewRequestsPage() {
               <DialogClose asChild>
                   <Button variant="ghost" onClick={() => {setIsActionDialogOpen(false); setAdminComments('');}}>Cancel</Button>
               </DialogClose>
-              <Button 
-                variant={actionType === 'reject' ? 'destructive' : 'default'} 
+              <Button
+                variant={actionType === 'reject' ? 'destructive' : 'default'}
                 onClick={handleConfirmAction}
                 className={actionType === 'approve' ? 'bg-primary hover:bg-primary/90' : ''}
               >
@@ -378,5 +389,3 @@ export default function ViewRequestsPage() {
     </div>
   );
 }
-
-    

@@ -25,6 +25,7 @@ export const STRESS_LEVELS_MAP: Record<FacilityFunction, StressLevelOption[]> = 
   'LM Delivery': [
     { value: 'Facility', label: 'Facility' },
     { value: 'Subcluster', label: 'Subcluster' },
+    { value: 'Pincode', label: 'Pincode' }, // Added Pincode option
   ],
   'RTO/DTO': [
     { value: 'Facility', label: 'Facility' },

@@ -19,7 +19,8 @@ export const MOCK_FACILITIES: Facility[] = [
     availableFunctions: ['FM Pickup', 'RTO/DTO'], // Multi-functional
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], // Primary shipment leg
     address: '123 North St, Anytown',
-    assignedHeadId: 'user-fh-fm'
+    assignedHeadId: 'user-fh-fm',
+    pincodes: [], // FM Pickup might not use pincode stress level this way
   },
   {
     id: 'facility-2',
@@ -28,7 +29,8 @@ export const MOCK_FACILITIES: Facility[] = [
     availableFunctions: ['LM Delivery'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'],
     address: '456 South Ave, Anytown',
-    assignedHeadId: 'user-fh-lm'
+    assignedHeadId: 'user-fh-lm',
+    pincodes: ['411001', '411002', '411003', '411014'], // Sample pincodes for LM Delivery
   },
   {
     id: 'facility-3',
@@ -37,7 +39,8 @@ export const MOCK_FACILITIES: Facility[] = [
     availableFunctions: ['RTO/DTO'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'],
     address: '789 East Rd, Anytown',
-    assignedHeadId: 'user-fh-rto'
+    assignedHeadId: 'user-fh-rto',
+    pincodes: [],
   },
   {
     id: 'facility-4',
@@ -46,15 +49,26 @@ export const MOCK_FACILITIES: Facility[] = [
     availableFunctions: ['RVP Facility'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RVP Facility'],
     address: '101 West Ln, Anytown',
-    assignedHeadId: 'user-fh-rvp'
+    assignedHeadId: 'user-fh-rvp',
+    pincodes: [],
   },
   {
     id: 'facility-5',
-    name: 'MUM/BHW', // Changed from 'Central Depot - FM Pickup'
+    name: 'MUM/BHW',
     type: 'FM Pickup',
     availableFunctions: ['FM Pickup'],
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'],
-    address: '202 Center Blvd, Anytown'
+    address: '202 Center Blvd, Anytown',
+    pincodes: [],
+  },
+  {
+    id: 'facility-6',
+    name: 'PUN/WAK', // New facility for testing single pincode
+    type: 'LM Delivery',
+    availableFunctions: ['LM Delivery'],
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'],
+    address: '777 Wakad Rd, Pune',
+    pincodes: ['411057'], // Single pincode
   },
 ];
 
@@ -125,6 +139,21 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     adminApproverId: 'user-admin-1',
     adminComments: 'System outage resolved, stress marking not required.',
     approvalDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'req-4',
+    facilityId: 'facility-2',
+    facilityName: 'PNQ/CHK',
+    facilityFunctionContext: 'LM Delivery',
+    stressLevel: 'Pincode',
+    pincode: '411001',
+    startDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+    extensionDays: 3,
+    reason: 'High volume for specific pincode',
+    submittedByUserId: 'user-ops-1',
+    submittedByName: 'Subham',
+    submissionDate: new Date().toISOString(),
+    status: 'Pending',
   },
 ];
 

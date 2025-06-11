@@ -7,7 +7,7 @@ export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
 export type FacilityFunction = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
 
 export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Facility';
-export type StressLevelLmDelivery = 'Subcluster' | 'Facility';
+export type StressLevelLmDelivery = 'Subcluster' | 'Facility' | 'Pincode'; // Added Pincode
 export type StressLevelRtoDto = 'Route' | 'Facility';
 export type StressLevelRvpFacility = 'Facility';
 
@@ -21,7 +21,8 @@ export interface Facility {
   shipmentLeg: ShipmentLeg; // This might need re-evaluation if functions have different legs
   address: string;
   assignedHeadId?: string;
-  coLocatedWith?: string; 
+  coLocatedWith?: string;
+  pincodes?: string[]; // Added for pincode stress level
 }
 
 export interface User {
@@ -29,13 +30,13 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  assignedFacilityId?: string; 
+  assignedFacilityId?: string;
 }
 
 export interface Route {
   id: string;
   name: string;
-  type: string; 
+  type: string;
 }
 
 export interface Subcluster {
@@ -53,16 +54,17 @@ export interface StressRequest {
   routeName?: string;
   subclusterId?: string;
   subclusterName?: string;
-  startDate: string; 
+  pincode?: string; // Added for pincode stress level
+  startDate: string;
   extensionDays: number;
   reason?: string;
   submittedByUserId: string;
   submittedByName: string;
-  submissionDate: string; 
+  submissionDate: string;
   status: 'Pending' | 'Approved' | 'Rejected' | 'Merged';
   adminApproverId?: string;
   adminComments?: string;
-  approvalDate?: string; 
+  approvalDate?: string;
 }
 
 export interface StressLevelOption {
@@ -72,10 +74,10 @@ export interface StressLevelOption {
 
 export interface Notification {
   id: string;
-  userId: string; 
+  userId: string;
   message: string;
-  timestamp: string; 
+  timestamp: string;
   isRead: boolean;
-  relatedRequestId?: string; 
-  link?: string; 
+  relatedRequestId?: string;
+  link?: string;
 }

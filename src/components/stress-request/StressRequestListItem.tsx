@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { StressRequest, UserRole } from '@/lib/types';
 import { useAppContext } from '@/contexts/AppContext';
-import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge, Settings2 } from 'lucide-react'; // Added Settings2
+import { CheckCircle, XCircle, Clock, User, CalendarDays, MessageSquare, Building, Layers, MapPinned, Boxes, GitMerge, Settings2, Pin } from 'lucide-react'; // Added Pin icon
 import { useToast } from '@/hooks/use-toast';
 
 interface StressRequestListItemProps {
@@ -38,7 +38,7 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       } else {
         setIsRejectDialogOpen(false);
       }
-      setAdminComments(''); 
+      setAdminComments('');
     } catch (error) {
       toast({ title: "Error", description: `Failed to update request status.`, variant: "destructive" });
       if (status === 'Approved') {
@@ -51,10 +51,10 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
 
   const getStatusBadgeVariant = (status: StressRequest['status']) => {
     switch (status) {
-      case 'Approved': return 'default'; 
+      case 'Approved': return 'default';
       case 'Rejected': return 'destructive';
       case 'Pending': return 'secondary';
-      case 'Merged': return 'outline'; 
+      case 'Merged': return 'outline';
       default: return 'outline';
     }
   };
@@ -85,10 +85,11 @@ export default function StressRequestListItem({ request, currentUserRole }: Stre
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InfoItem icon={Settings2} label="Operating Function" value={request.facilityFunctionContext} /> {/* Changed Building to Settings2, label, value */}
+          <InfoItem icon={Settings2} label="Operating Function" value={request.facilityFunctionContext} />
           <InfoItem icon={Layers} label="Stress Level" value={request.stressLevel} />
           {request.routeName && <InfoItem icon={MapPinned} label="Route" value={request.routeName} />}
           {request.subclusterName && <InfoItem icon={Boxes} label="Subcluster" value={request.subclusterName} />}
+          {request.pincode && <InfoItem icon={Pin} label="Pincode" value={request.pincode} />}
           <InfoItem icon={CalendarDays} label="Start Date" value={format(parseISO(request.startDate), 'PPP')} />
           <InfoItem icon={CalendarDays} label="Extension" value={`${request.extensionDays} days`} />
           <InfoItem icon={User} label="Submitted By" value={submittedByUser?.name || request.submittedByName} />

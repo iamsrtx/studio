@@ -70,7 +70,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setNotifications(JSON.parse(storedNotifications));
         } catch (e) {
             console.error("Error parsing notifications from localStorage", e);
-            setNotifications(MOCK_NOTIFICATIONS); 
+            setNotifications(MOCK_NOTIFICATIONS);
         }
     }
 
@@ -130,7 +130,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         message: `New stress request for ${newRequest.facilityName} (${newRequest.facilityFunctionContext}) needs approval.`,
         relatedRequestId: newRequest.id,
         isRead: false,
-        link: `/dashboard/admin/approvals` 
+        link: `/dashboard/admin/approvals`
       });
     });
     return newRequest;
@@ -147,7 +147,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error("Request to update not found");
       return;
     }
-    
+
     let finalUpdatedRequestForNotification: StressRequest | undefined;
 
     if (status === 'Approved') {
@@ -164,8 +164,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (!existingReqStressLevel.includes('route') || req.routeId !== requestToUpdate!.routeId) return false;
         } else if (toUpdateStressLevel.includes('subcluster')) {
           if (!existingReqStressLevel.includes('subcluster') || req.subclusterId !== requestToUpdate!.subclusterId) return false;
-        } else { 
-          if (existingReqStressLevel.includes('route') || existingReqStressLevel.includes('subcluster')) return false;
+        } else if (requestToUpdate!.stressLevel === 'Pincode') { // Check for Pincode
+          if (req.stressLevel !== 'Pincode' || req.pincode !== requestToUpdate!.pincode) return false;
+        } else {
+          if (existingReqStressLevel.includes('route') || existingReqStressLevel.includes('subcluster') || req.stressLevel === 'Pincode') return false;
         }
 
         const reqStartDate = new Date(req.startDate);
@@ -190,7 +192,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         const finalStartDate = existingOrigStartDate < newReqStartDate ? existingOrigStartDate : newReqStartDate;
         const finalEndDate = existingOrigEndDate > newReqEndDate ? existingOrigEndDate : newReqEndDate;
-        
+
         const timeDiff = finalEndDate.getTime() - finalStartDate.getTime();
         const totalNewExtensionDays = Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
 
@@ -203,7 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           adminApproverId: currentAdminApproverId,
           approvalDate: currentApprovalDate,
         };
-        
+
         const mergedRequest = {
             ...requestToUpdate,
             status: 'Merged' as 'Merged',
@@ -280,15 +282,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
   };
-  
+
   const fetchAiReason = async (facilityFunction: FacilityFunction): Promise<string> => { // Changed facilityType to facilityFunction
     setIsLoadingAiReason(true);
     try {
-      const result = await suggestStressReasonFlow({ facilityFunction }); // Pass facilityFunction
-      return result.reason;
+      // Ensure the input to the AI flow matches its schema
+      const result = await suggestStressReasonFlow({ facilityFunction: facilityFunction });
+      // Check if the result and reason exist before returning
+      return result?.reason || "Could not fetch suggestion due to an unexpected AI response.";
     } catch (error) {
       console.error("Error fetching AI reason:", error);
-      return "Could not fetch suggestion at this time.";
+      // It's good practice to log the actual error for debugging
+      // Potentially provide a more user-friendly error message if needed
+      return "Could not fetch suggestion at this time. Please try again later or enter a reason manually.";
     } finally {
       setIsLoadingAiReason(false);
     }
@@ -314,7 +320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!currentUser) return;
     setNotifications(prev => prev.map(n => n.userId === currentUser.id ? { ...n, isRead: true } : n));
   };
-  
+
   const getUnreadNotificationsCount = useCallback(() => {
     if (!currentUser) return 0;
     return notifications.filter(n => n.userId === currentUser.id && !n.isRead).length;

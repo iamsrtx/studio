@@ -13,6 +13,7 @@ import FacilitySelector from './FacilitySelector';
 import StressLevelSelector from './StressLevelSelector';
 import RouteSelector from './RouteSelector';
 import SubclusterSelector from './SubclusterSelector';
+import PincodeSelector from './PincodeSelector'; // Import PincodeSelector
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from '@/contexts/AppContext';
 import type { Facility, FacilityFunction, StressLevel } from '@/lib/types';
@@ -44,9 +45,10 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       stressLevel: undefined,
       routeId: undefined,
       subclusterId: undefined,
+      pincode: undefined, // Added pincode default
       startDate: undefined,
       extensionDays: 1,
-      reason: undefined, // Set initial reason to undefined to match Zod enum for required
+      reason: undefined,
     },
   });
 
@@ -57,6 +59,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
 
   const currentFacilityForUI = watchedFacilityId ? getFacilityById(watchedFacilityId) : undefined;
   const currentAvailableFunctionsForUI = currentFacilityForUI?.availableFunctions || [];
+  const currentAvailablePincodesForUI = currentFacilityForUI?.pincodes || [];
 
 
 useEffect(() => {
@@ -77,8 +80,12 @@ useEffect(() => {
       form.setValue('facilityFunctionContext', determinedFacilityFunction, { shouldDirty: true });
     }
     
+    // Reset dependent fields when facility changes
     if (form.getValues('stressLevel') !== undefined) {
       form.setValue('stressLevel', undefined, { shouldDirty: true });
+    }
+    if (form.getValues('pincode') !== undefined) {
+      form.setValue('pincode', undefined, { shouldDirty: true });
     }
 
 }, [watchedFacilityId, getFacilityById, form]);
@@ -86,7 +93,6 @@ useEffect(() => {
 
 useEffect(() => {
     let newStressLevelToSet: StressLevel | undefined = undefined;
-    let needsStressLevelValidation = false;
 
     if (watchedFacilityFunctionContext) {
       const stressOptions = STRESS_LEVELS_MAP[watchedFacilityFunctionContext];
@@ -95,31 +101,26 @@ useEffect(() => {
       } else {
         const currentStressLevel = form.getValues('stressLevel');
         if (currentStressLevel && (!stressOptions || !stressOptions.find(opt => opt.value === currentStressLevel))) {
-          newStressLevelToSet = undefined; 
+          newStressLevelToSet = undefined;
         }
       }
     } else {
-      newStressLevelToSet = undefined; 
+      newStressLevelToSet = undefined;
     }
 
     if (form.getValues('stressLevel') !== newStressLevelToSet) {
       form.setValue('stressLevel', newStressLevelToSet, { shouldDirty: true });
-      needsStressLevelValidation = true;
     }
 
+    // Reset fields dependent on stressLevel if facilityFunctionContext changes
     if (form.getValues('routeId') !== undefined) {
       form.setValue('routeId', undefined, {shouldDirty: true});
     }
     if (form.getValues('subclusterId') !== undefined) {
       form.setValue('subclusterId', undefined, {shouldDirty: true});
     }
-
-    // Removed explicit trigger for facilityFunctionContext to avoid premature "required" error
-    // if (form.formState.dirtyFields.facilityFunctionContext || !watchedFacilityFunctionContext) {
-    //   form.trigger('facilityFunctionContext');
-    // }
-    if (needsStressLevelValidation || (form.formState.dirtyFields.stressLevel && !watchedFacilityFunctionContext)) {
-       form.trigger('stressLevel');
+    if (form.getValues('pincode') !== undefined) {
+      form.setValue('pincode', undefined, {shouldDirty: true});
     }
 
 }, [watchedFacilityFunctionContext, form]);
@@ -129,16 +130,33 @@ useEffect(() => {
     const stressLevelValue = watchedStressLevel as string | undefined;
     const needsRoute = stressLevelValue && stressLevelValue.toLowerCase().includes('route');
     const needsSubcluster = stressLevelValue && stressLevelValue.toLowerCase().includes('subcluster');
+    const needsPincode = stressLevelValue && stressLevelValue === 'Pincode';
 
     if (!needsRoute && form.getValues('routeId')) {
       form.setValue('routeId', undefined);
-      if(form.formState.dirtyFields.routeId) form.clearErrors('routeId'); 
+      if(form.formState.dirtyFields.routeId) form.clearErrors('routeId');
     }
     if (!needsSubcluster && form.getValues('subclusterId')) {
       form.setValue('subclusterId', undefined);
-      if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId'); 
+      if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId');
     }
-}, [watchedStressLevel, form]);
+    if (!needsPincode && form.getValues('pincode')) {
+      form.setValue('pincode', undefined);
+      if(form.formState.dirtyFields.pincode) form.clearErrors('pincode');
+    }
+
+    // Auto-select pincode if only one is available for the current facility and stress level is Pincode
+    if (needsPincode && currentFacilityForUI && currentAvailablePincodesForUI.length === 1) {
+        if (form.getValues('pincode') !== currentAvailablePincodesForUI[0]) {
+            form.setValue('pincode', currentAvailablePincodesForUI[0], { shouldDirty: true });
+        }
+    } else if (needsPincode && form.getValues('pincode') && (currentAvailablePincodesForUI.length === 0 || !currentAvailablePincodesForUI.includes(form.getValues('pincode')!))) {
+        // If current pincode is no longer valid (e.g. facility changed), clear it
+        form.setValue('pincode', undefined, { shouldDirty: true });
+    }
+
+
+}, [watchedStressLevel, form, currentFacilityForUI, currentAvailablePincodesForUI]);
 
 
 useEffect(() => {
@@ -159,7 +177,7 @@ useEffect(() => {
 
 
   const onSubmit = async (data: StressRequestFormData) => {
-    if (!currentUser || !currentFacilityForUI || !data.facilityFunctionContext) { 
+    if (!currentUser || !currentFacilityForUI || !data.facilityFunctionContext) {
       toast({ title: "Error", description: "User, facility, or facility function not found.", variant: "destructive" });
       return;
     }
@@ -179,13 +197,14 @@ useEffect(() => {
 
       const requestPayload = {
         facilityId: data.facilityId,
-        facilityName: currentFacilityForUI.name, 
+        facilityName: currentFacilityForUI.name,
         facilityFunctionContext: data.facilityFunctionContext,
         stressLevel: data.stressLevel,
         routeId: data.routeId,
         routeName: route?.name,
         subclusterId: data.subclusterId,
         subclusterName: subcluster?.name,
+        pincode: data.pincode, // Added pincode
         startDate: data.startDate.toISOString(),
         extensionDays: data.extensionDays,
         reason: data.reason,
@@ -202,11 +221,12 @@ useEffect(() => {
             stressLevel: undefined,
             routeId: undefined,
             subclusterId: undefined,
+            pincode: undefined, // Reset pincode
             startDate: undefined,
             extensionDays: 1,
-            reason: undefined, // Reset reason to undefined
+            reason: undefined,
         });
-        
+
         if (facilityHeadAssignedId) {
             setSelectedFacilityForDisplay(getFacilityById(facilityHeadAssignedId));
         } else {
@@ -266,11 +286,8 @@ useEffect(() => {
                   <FormLabel>Operating Facility Function</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      if (FACILITY_FUNCTIONS.includes(value as FacilityFunction)) {
-                        field.onChange(value as FacilityFunction);
-                      } else {
-                        field.onChange(undefined); 
-                      }
+                      const validFunction = FACILITY_FUNCTIONS.find(fn => fn === value);
+                      field.onChange(validFunction as FacilityFunction | undefined);
                     }}
                     value={field.value ?? ''}
                     disabled={!currentFacilityForUI || currentAvailableFunctionsForUI.length <= 1}
@@ -301,9 +318,9 @@ useEffect(() => {
               render={({ field }) => (
                 <FormItem>
                   <StressLevelSelector
-                    facilityFunction={watchedFacilityFunctionContext} 
+                    facilityFunction={watchedFacilityFunctionContext}
                     selectedStressLevel={field.value}
-                    onStressLevelChange={(value) => field.onChange(value as StressLevel)} 
+                    onStressLevelChange={(value) => field.onChange(value as StressLevel)}
                     disabled={!currentFacilityForUI || !watchedFacilityFunctionContext}
                   />
                   <FormMessage />
@@ -339,6 +356,25 @@ useEffect(() => {
                       onSubclusterChange={(value) => field.onChange(value === '' ? undefined : value)}
                       disabled={!currentFacilityForUI || !watchedStressLevel || !watchedFacilityFunctionContext}
                     />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {watchedStressLevel === 'Pincode' && (
+              <FormField
+                control={form.control}
+                name="pincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <PincodeSelector
+                      selectedPincode={field.value}
+                      onPincodeChange={(value) => field.onChange(value)}
+                      availablePincodes={currentAvailablePincodesForUI}
+                      disabled={!currentFacilityForUI || !watchedFacilityFunctionContext || currentAvailablePincodesForUI.length === 0 || (currentAvailablePincodesForUI.length === 1 && !!field.value)}
+                    />
+                    {currentAvailablePincodesForUI.length === 1 && <FormDescription>Auto-selected based on facility's pincode(s).</FormDescription>}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -393,8 +429,8 @@ useEffect(() => {
                     <FormItem>
                         <ReasonSuggestion
                             reason={field.value || ''}
-                            onReasonChange={field.onChange}
-                            facilityFunction={watchedFacilityFunctionContext} 
+                            onReasonChange={(value) => field.onChange(value === '' ? undefined : value)}
+                            facilityFunction={watchedFacilityFunctionContext}
                             disabled={!watchedFacilityFunctionContext}
                         />
                         <FormMessage/>
@@ -413,5 +449,3 @@ useEffect(() => {
     </Card>
   );
 }
-
-    
