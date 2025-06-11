@@ -15,7 +15,7 @@ import RouteSelector from './RouteSelector';
 import SubclusterSelector from './SubclusterSelector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from '@/contexts/AppContext';
-import type { Facility, FacilityFunction, StressLevel } from '@/lib/types'; // FacilityType -> FacilityFunction
+import type { Facility, FacilityFunction, StressLevel } from '@/lib/types';
 import { StressRequestSchema, type StressRequestFormData } from '@/zod-schemas';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
@@ -57,31 +57,50 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
 
 
   // Effect for when facilityId changes (user selects a facility)
-  useEffect(() => {
+useEffect(() => {
     if (watchedFacilityId) {
-      const facility = getFacilityById(watchedFacilityId);
-      setSelectedFacility(facility);
-      if (facility && facility.availableFunctions) {
-        setAvailableFunctionsForSelectedFacility(facility.availableFunctions);
-        if (facility.availableFunctions.length === 1) {
-          form.setValue('facilityFunctionContext', facility.availableFunctions[0]);
-        } else {
-          form.setValue('facilityFunctionContext', undefined); // Reset if multiple options
+        const facility = getFacilityById(watchedFacilityId);
+        setSelectedFacility(facility); // React state for UI elements that depend on the whole facility object
+
+        if (facility && facility.availableFunctions && facility.availableFunctions.length > 0) {
+            setAvailableFunctionsForSelectedFacility(facility.availableFunctions); // React state for populating dropdown
+
+            if (facility.availableFunctions.length === 1) {
+                const singleFunction = facility.availableFunctions[0];
+                // Ensure the single function is a valid one from the global list
+                if (FACILITY_FUNCTIONS.includes(singleFunction as FacilityFunction)) {
+                    form.setValue('facilityFunctionContext', singleFunction, { shouldDirty: true, shouldValidate: true });
+                } else {
+                    // This case means bad data in facility.availableFunctions (e.g., it contains an empty string or invalid function)
+                    form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+                }
+            } else { // Facility has multiple functions, or the single one was invalid; user must select
+                form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+            }
+        } else { // No facility found, or facility has no available functions defined
+            setAvailableFunctionsForSelectedFacility([]);
+            form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
         }
-      } else {
+        // Reset dependent fields as facility or its core function context might change
+        // These resets should generally not trigger validation on their own unless they were previously dirty and had errors.
+        form.setValue('stressLevel', undefined, { shouldDirty: true });
+        form.setValue('routeId', undefined, { shouldDirty: true });
+        form.setValue('subclusterId', undefined, { shouldDirty: true });
+        
+        // If stressLevel was already dirty (e.g. user interacted with it), explicit re-validation might be needed
+        // if (form.formState.dirtyFields.stressLevel) form.trigger('stressLevel');
+        // It's often better to let Zod's superRefine handle dependent field validation on submit or blur.
+
+    } else { // No facility ID selected (e.g., Ops user cleared selection, or initial state for Ops)
+        setSelectedFacility(undefined);
         setAvailableFunctionsForSelectedFacility([]);
-        form.setValue('facilityFunctionContext', undefined);
-      }
-      form.setValue('stressLevel', undefined); // Reset stress level on facility change
-      form.setValue('routeId', undefined);
-      form.setValue('subclusterId', undefined);
-    } else {
-      setSelectedFacility(undefined);
-      setAvailableFunctionsForSelectedFacility([]);
-      form.setValue('facilityFunctionContext', undefined);
-      form.setValue('stressLevel', undefined);
+        // form.setValue('facilityId', ''); // RHF handles this field directly if it's a controlled input
+        form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+        form.setValue('stressLevel', undefined, { shouldDirty: true });
+        form.setValue('routeId', undefined, { shouldDirty: true });
+        form.setValue('subclusterId', undefined, { shouldDirty: true });
     }
-  }, [watchedFacilityId, getFacilityById, form]);
+}, [watchedFacilityId, getFacilityById, form]);
 
 
   // Effect for when facilityFunctionContext changes
@@ -89,35 +108,44 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     if (watchedFacilityFunctionContext) {
       const stressOptions = STRESS_LEVELS_MAP[watchedFacilityFunctionContext];
       if (stressOptions && stressOptions.length === 1) {
+        // Auto-populate if current stressLevel is not already this single option, or if it's undefined
         if (form.getValues('stressLevel') !== stressOptions[0].value) {
-          form.setValue('stressLevel', stressOptions[0].value);
+          form.setValue('stressLevel', stressOptions[0].value, {shouldValidate: true, shouldDirty: true});
         }
       } else {
          // If not auto-populating or options change, reset stressLevel if previous one is no longer valid
         const currentStressLevel = form.getValues('stressLevel');
         if (currentStressLevel && stressOptions && !stressOptions.find(opt => opt.value === currentStressLevel)) {
-            form.setValue('stressLevel', undefined);
+            form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true});
+        } else if (!watchedFacilityFunctionContext && currentStressLevel){ // If function context is cleared, clear stress level
+            form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true});
         }
       }
-    } else {
-      form.setValue('stressLevel', undefined); // Reset if no function context
+    } else { // No facilityFunctionContext
+      form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true}); 
     }
-    // Reset route/subcluster when function context changes as stress level might change
-    form.setValue('routeId', undefined); 
-    form.setValue('subclusterId', undefined);
+    // Reset route/subcluster when function context changes as stress level might change which dictates their visibility/requirement
+    form.setValue('routeId', undefined, {shouldDirty: true}); 
+    form.setValue('subclusterId', undefined, {shouldDirty: true});
+    
+    // Explicitly trigger validation for related fields if they were touched by the user
     if (form.formState.dirtyFields.facilityFunctionContext) form.trigger('facilityFunctionContext');
-    if (form.formState.dirtyFields.stressLevel) form.trigger('stressLevel');
+    if (form.formState.dirtyFields.stressLevel || !watchedFacilityFunctionContext) form.trigger('stressLevel');
+
 
   }, [watchedFacilityFunctionContext, form]);
 
 
   useEffect(() => {
     const stressLevelValue = watchedStressLevel as string | undefined;
-    if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('route')) {
+    const needsRoute = stressLevelValue && stressLevelValue.toLowerCase().includes('route');
+    const needsSubcluster = stressLevelValue && stressLevelValue.toLowerCase().includes('subcluster');
+
+    if (!needsRoute && form.getValues('routeId')) {
       form.setValue('routeId', undefined);
       if(form.formState.dirtyFields.routeId) form.clearErrors('routeId');
     }
-    if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('subcluster')) {
+    if (!needsSubcluster && form.getValues('subclusterId')) {
       form.setValue('subclusterId', undefined);
       if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId');
     }
@@ -136,26 +164,18 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
 
 
   const handleFacilityChange = (facilityId: string) => {
-    form.setValue('facilityId', facilityId); 
+    form.setValue('facilityId', facilityId, { shouldValidate: true, shouldDirty: true }); 
     // Other logic is handled by the useEffect watching watchedFacilityId
   };
 
   const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
-    form.setValue('stressLevel', stressLevel);
-    if (stressLevel && !stressLevel.toLowerCase().includes('route')) {
-        form.setValue('routeId', undefined);
-        form.clearErrors('routeId');
-    }
-    if (stressLevel && !stressLevel.toLowerCase().includes('subcluster')) {
-        form.setValue('subclusterId', undefined);
-        form.clearErrors('subclusterId');
-    }
-    if (form.formState.dirtyFields.stressLevel) form.trigger('stressLevel');
+    form.setValue('stressLevel', stressLevel, {shouldValidate: true, shouldDirty: true});
+    // Logic for clearing route/subclusterId is now in its own useEffect watching watchedStressLevel
   };
 
 
   const onSubmit = async (data: StressRequestFormData) => {
-    if (!currentUser || !selectedFacility || !data.facilityFunctionContext) { // Added facilityFunctionContext check
+    if (!currentUser || !selectedFacility || !data.facilityFunctionContext) { 
       toast({ title: "Error", description: "User, facility, or facility function not found.", variant: "destructive" });
       return;
     }
@@ -176,7 +196,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       const requestPayload = {
         facilityId: data.facilityId,
         facilityName: selectedFacility.name,
-        facilityFunctionContext: data.facilityFunctionContext, // Submit chosen function
+        facilityFunctionContext: data.facilityFunctionContext, 
         stressLevel: data.stressLevel,
         routeId: data.routeId,
         routeName: route?.name,
@@ -191,10 +211,11 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       if (newRequest) {
         toast({ title: "Success", description: "Stress request submitted successfully." });
         const facilityHeadAssignedId = currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '';
+        
         form.reset({
-            facilityId: facilityHeadAssignedId,
-            facilityFunctionContext: undefined, // Will be auto-set by useEffect if applicable
-            stressLevel: undefined,
+            facilityId: facilityHeadAssignedId, // Keep FacilityHead's assigned facility
+            facilityFunctionContext: undefined, // Will be auto-set by useEffect
+            stressLevel: undefined, // Will be auto-set or cleared by useEffect
             routeId: undefined,
             subclusterId: undefined,
             startDate: undefined,
@@ -202,21 +223,18 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
             reason: "Space Stress",
         });
         
-        // Manually trigger side effects after reset if facility is pre-selected for FacilityHead
+        // After reset, manually ensure selectedFacility and availableFunctions are correctly set for FacilityHead
         if (facilityHeadAssignedId) {
             const facility = getFacilityById(facilityHeadAssignedId);
-            setSelectedFacility(facility); // Ensure selectedFacility is updated
+            setSelectedFacility(facility); 
              if (facility && facility.availableFunctions) {
                 setAvailableFunctionsForSelectedFacility(facility.availableFunctions);
-                if (facility.availableFunctions.length === 1) {
-                    form.setValue('facilityFunctionContext', facility.availableFunctions[0], { shouldValidate: true, shouldDirty: true });
-                }
+                // The useEffect for watchedFacilityId will handle auto-setting facilityFunctionContext
             }
         } else {
             setSelectedFacility(undefined);
             setAvailableFunctionsForSelectedFacility([]);
         }
-
 
         if (onSubmitSuccess) onSubmitSuccess();
       } else {
@@ -272,8 +290,8 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                 <FormItem>
                   <FormLabel>Operating Facility Function</FormLabel>
                   <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value}
+                    onValueChange={(value) => field.onChange(value === '' ? undefined : value)} // Ensure empty string is not passed
+                    value={field.value ?? ''} // Ensure Select gets '' if field.value is undefined, if it expects that for placeholder
                     disabled={!selectedFacility || availableFunctionsForSelectedFacility.length <= 1}
                   >
                     <FormControl>
@@ -288,7 +306,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                     </SelectContent>
                   </Select>
                   {availableFunctionsForSelectedFacility.length <=1 && selectedFacility &&
-                    <FormDescription>Auto-selected based on facility.</FormDescription>
+                    <FormDescription>Auto-selected based on facility's primary function.</FormDescription>
                   }
                   <FormMessage />
                 </FormItem>
@@ -304,7 +322,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                   <StressLevelSelector
                     facilityFunction={watchedFacilityFunctionContext}
                     selectedStressLevel={field.value}
-                    onStressLevelChange={(value) => handleStressLevelChange(value as StressLevel)}
+                    onStressLevelChange={(value) => handleStressLevelChange(value as StressLevel)} // casting here is okay as component expects StressLevel
                     disabled={!selectedFacility || !watchedFacilityFunctionContext}
                   />
                   <FormMessage />
@@ -320,7 +338,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                   <FormItem>
                     <RouteSelector
                       selectedRouteId={field.value}
-                      onRouteChange={field.onChange}
+                      onRouteChange={(value) => field.onChange(value === '' ? undefined : value)}
                       disabled={!selectedFacility || !currentStressLevel || !watchedFacilityFunctionContext}
                     />
                     <FormMessage />
@@ -337,7 +355,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                   <FormItem>
                     <SubclusterSelector
                       selectedSubclusterId={field.value}
-                      onSubclusterChange={field.onChange}
+                      onSubclusterChange={(value) => field.onChange(value === '' ? undefined : value)}
                       disabled={!selectedFacility || !currentStressLevel || !watchedFacilityFunctionContext}
                     />
                     <FormMessage />
@@ -414,3 +432,4 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
+
