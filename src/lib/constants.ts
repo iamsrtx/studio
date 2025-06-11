@@ -17,26 +17,26 @@ export const FACILITY_FUNCTION_TO_SHIPMENT_LEG: Record<FacilityFunction, Shipmen
 };
 
 // Keys are now FacilityFunction
-// Added 'Pincode' option to all facility functions
+// Stress Level options reordered: Route, Subcluster, Pincode, Facility
 export const STRESS_LEVELS_MAP: Record<FacilityFunction, StressLevelOption[]> = {
   'FM Pickup': [
-    { value: 'Facility', label: 'Facility' },
     { value: 'Route', label: 'Route' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Facility', label: 'Facility' },
   ],
   'LM Delivery': [
-    { value: 'Facility', label: 'Facility' },
     { value: 'Subcluster', label: 'Subcluster' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Facility', label: 'Facility' },
   ],
   'RTO/DTO': [
-    { value: 'Facility', label: 'Facility' },
     { value: 'Route', label: 'Route' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Facility', label: 'Facility' },
   ],
   'RVP Facility': [
-    { value: 'Facility', label: 'Facility' },
     { value: 'Pincode', label: 'Pincode' },
+    { value: 'Facility', label: 'Facility' },
   ],
 };
 
