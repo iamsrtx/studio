@@ -56,49 +56,48 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   const watchedReason = form.watch('reason');
 
 
-  // Effect for when facilityId changes (user selects a facility)
+// Effect for when facilityId changes (user selects a facility)
 useEffect(() => {
     if (watchedFacilityId) {
         const facility = getFacilityById(watchedFacilityId);
-        setSelectedFacility(facility); // React state for UI elements that depend on the whole facility object
+        setSelectedFacility(facility); 
 
         if (facility && facility.availableFunctions && facility.availableFunctions.length > 0) {
-            setAvailableFunctionsForSelectedFacility(facility.availableFunctions); // React state for populating dropdown
+            setAvailableFunctionsForSelectedFacility(facility.availableFunctions);
 
             if (facility.availableFunctions.length === 1) {
                 const singleFunction = facility.availableFunctions[0];
-                // Ensure the single function is a valid one from the global list
                 if (FACILITY_FUNCTIONS.includes(singleFunction as FacilityFunction)) {
-                    form.setValue('facilityFunctionContext', singleFunction, { shouldDirty: true, shouldValidate: true });
+                    form.setValue('facilityFunctionContext', singleFunction, { shouldDirty: true });
                 } else {
-                    // This case means bad data in facility.availableFunctions (e.g., it contains an empty string or invalid function)
-                    form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+                    form.setValue('facilityFunctionContext', undefined, { shouldDirty: true });
                 }
-            } else { // Facility has multiple functions, or the single one was invalid; user must select
-                form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+            } else { 
+                form.setValue('facilityFunctionContext', undefined, { shouldDirty: true });
             }
-        } else { // No facility found, or facility has no available functions defined
+        } else { 
             setAvailableFunctionsForSelectedFacility([]);
-            form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+            form.setValue('facilityFunctionContext', undefined, { shouldDirty: true });
         }
-        // Reset dependent fields as facility or its core function context might change
-        // These resets should generally not trigger validation on their own unless they were previously dirty and had errors.
         form.setValue('stressLevel', undefined, { shouldDirty: true });
         form.setValue('routeId', undefined, { shouldDirty: true });
         form.setValue('subclusterId', undefined, { shouldDirty: true });
         
-        // If stressLevel was already dirty (e.g. user interacted with it), explicit re-validation might be needed
-        // if (form.formState.dirtyFields.stressLevel) form.trigger('stressLevel');
-        // It's often better to let Zod's superRefine handle dependent field validation on submit or blur.
+        // Trigger validation for facilityFunctionContext if it was already dirty, to clear potential old errors.
+        if (form.formState.dirtyFields.facilityFunctionContext) {
+            form.trigger('facilityFunctionContext');
+        }
 
-    } else { // No facility ID selected (e.g., Ops user cleared selection, or initial state for Ops)
+    } else { 
         setSelectedFacility(undefined);
         setAvailableFunctionsForSelectedFacility([]);
-        // form.setValue('facilityId', ''); // RHF handles this field directly if it's a controlled input
-        form.setValue('facilityFunctionContext', undefined, { shouldDirty: true, shouldValidate: true });
+        form.setValue('facilityFunctionContext', undefined, { shouldDirty: true });
         form.setValue('stressLevel', undefined, { shouldDirty: true });
         form.setValue('routeId', undefined, { shouldDirty: true });
         form.setValue('subclusterId', undefined, { shouldDirty: true });
+        if (form.formState.dirtyFields.facilityFunctionContext) {
+            form.trigger('facilityFunctionContext');
+        }
     }
 }, [watchedFacilityId, getFacilityById, form]);
 
@@ -108,27 +107,23 @@ useEffect(() => {
     if (watchedFacilityFunctionContext) {
       const stressOptions = STRESS_LEVELS_MAP[watchedFacilityFunctionContext];
       if (stressOptions && stressOptions.length === 1) {
-        // Auto-populate if current stressLevel is not already this single option, or if it's undefined
         if (form.getValues('stressLevel') !== stressOptions[0].value) {
           form.setValue('stressLevel', stressOptions[0].value, {shouldValidate: true, shouldDirty: true});
         }
       } else {
-         // If not auto-populating or options change, reset stressLevel if previous one is no longer valid
         const currentStressLevel = form.getValues('stressLevel');
         if (currentStressLevel && stressOptions && !stressOptions.find(opt => opt.value === currentStressLevel)) {
             form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true});
-        } else if (!watchedFacilityFunctionContext && currentStressLevel){ // If function context is cleared, clear stress level
+        } else if (!watchedFacilityFunctionContext && currentStressLevel){ 
             form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true});
         }
       }
-    } else { // No facilityFunctionContext
+    } else { 
       form.setValue('stressLevel', undefined, {shouldValidate: true, shouldDirty: true}); 
     }
-    // Reset route/subcluster when function context changes as stress level might change which dictates their visibility/requirement
     form.setValue('routeId', undefined, {shouldDirty: true}); 
     form.setValue('subclusterId', undefined, {shouldDirty: true});
     
-    // Explicitly trigger validation for related fields if they were touched by the user
     if (form.formState.dirtyFields.facilityFunctionContext) form.trigger('facilityFunctionContext');
     if (form.formState.dirtyFields.stressLevel || !watchedFacilityFunctionContext) form.trigger('stressLevel');
 
@@ -165,12 +160,10 @@ useEffect(() => {
 
   const handleFacilityChange = (facilityId: string) => {
     form.setValue('facilityId', facilityId, { shouldValidate: true, shouldDirty: true }); 
-    // Other logic is handled by the useEffect watching watchedFacilityId
   };
 
   const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
     form.setValue('stressLevel', stressLevel, {shouldValidate: true, shouldDirty: true});
-    // Logic for clearing route/subclusterId is now in its own useEffect watching watchedStressLevel
   };
 
 
@@ -213,9 +206,9 @@ useEffect(() => {
         const facilityHeadAssignedId = currentUser?.role === 'FacilityHead' && currentUser.assignedFacilityId ? currentUser.assignedFacilityId : '';
         
         form.reset({
-            facilityId: facilityHeadAssignedId, // Keep FacilityHead's assigned facility
-            facilityFunctionContext: undefined, // Will be auto-set by useEffect
-            stressLevel: undefined, // Will be auto-set or cleared by useEffect
+            facilityId: facilityHeadAssignedId, 
+            facilityFunctionContext: undefined, 
+            stressLevel: undefined, 
             routeId: undefined,
             subclusterId: undefined,
             startDate: undefined,
@@ -223,13 +216,11 @@ useEffect(() => {
             reason: "Space Stress",
         });
         
-        // After reset, manually ensure selectedFacility and availableFunctions are correctly set for FacilityHead
         if (facilityHeadAssignedId) {
             const facility = getFacilityById(facilityHeadAssignedId);
             setSelectedFacility(facility); 
              if (facility && facility.availableFunctions) {
                 setAvailableFunctionsForSelectedFacility(facility.availableFunctions);
-                // The useEffect for watchedFacilityId will handle auto-setting facilityFunctionContext
             }
         } else {
             setSelectedFacility(undefined);
@@ -290,8 +281,15 @@ useEffect(() => {
                 <FormItem>
                   <FormLabel>Operating Facility Function</FormLabel>
                   <Select 
-                    onValueChange={(value) => field.onChange(value === '' ? undefined : value)} // Ensure empty string is not passed
-                    value={field.value ?? ''} // Ensure Select gets '' if field.value is undefined, if it expects that for placeholder
+                    onValueChange={(value) => {
+                      // Ensure only valid enum members or undefined are passed to react-hook-form
+                      if (FACILITY_FUNCTIONS.includes(value as FacilityFunction)) {
+                        field.onChange(value as FacilityFunction);
+                      } else {
+                        field.onChange(undefined); // Handles empty string or any other invalid value
+                      }
+                    }}
+                    value={field.value ?? ''} 
                     disabled={!selectedFacility || availableFunctionsForSelectedFacility.length <= 1}
                   >
                     <FormControl>
@@ -306,7 +304,7 @@ useEffect(() => {
                     </SelectContent>
                   </Select>
                   {availableFunctionsForSelectedFacility.length <=1 && selectedFacility &&
-                    <FormDescription>Auto-selected based on facility's primary function.</FormDescription>
+                    <FormDescription>Auto-selected based on facility's function(s).</FormDescription>
                   }
                   <FormMessage />
                 </FormItem>
@@ -322,7 +320,7 @@ useEffect(() => {
                   <StressLevelSelector
                     facilityFunction={watchedFacilityFunctionContext}
                     selectedStressLevel={field.value}
-                    onStressLevelChange={(value) => handleStressLevelChange(value as StressLevel)} // casting here is okay as component expects StressLevel
+                    onStressLevelChange={(value) => handleStressLevelChange(value as StressLevel)} 
                     disabled={!selectedFacility || !watchedFacilityFunctionContext}
                   />
                   <FormMessage />
