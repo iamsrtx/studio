@@ -12,49 +12,49 @@ export const MOCK_USERS: User[] = [
 ];
 
 export const MOCK_FACILITIES: Facility[] = [
-  { 
-    id: 'facility-1', 
-    name: 'PNQ/KHR', 
+  {
+    id: 'facility-1',
+    name: 'PNQ/KHR',
     type: 'FM Pickup', // Primary function
     availableFunctions: ['FM Pickup', 'RTO/DTO'], // Multi-functional
     shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], // Primary shipment leg
-    address: '123 North St, Anytown', 
-    assignedHeadId: 'user-fh-fm' 
+    address: '123 North St, Anytown',
+    assignedHeadId: 'user-fh-fm'
   },
-  { 
-    id: 'facility-2', 
-    name: 'PNQ/CHK', 
-    type: 'LM Delivery', 
+  {
+    id: 'facility-2',
+    name: 'PNQ/CHK',
+    type: 'LM Delivery',
     availableFunctions: ['LM Delivery'],
-    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'], 
-    address: '456 South Ave, Anytown', 
-    assignedHeadId: 'user-fh-lm' 
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['LM Delivery'],
+    address: '456 South Ave, Anytown',
+    assignedHeadId: 'user-fh-lm'
   },
-  { 
-    id: 'facility-3', 
-    name: 'DEL/PTD', 
-    type: 'RTO/DTO', 
+  {
+    id: 'facility-3',
+    name: 'DEL/PTD',
+    type: 'RTO/DTO',
     availableFunctions: ['RTO/DTO'],
-    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'], 
-    address: '789 East Rd, Anytown', 
-    assignedHeadId: 'user-fh-rto' 
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RTO/DTO'],
+    address: '789 East Rd, Anytown',
+    assignedHeadId: 'user-fh-rto'
   },
-  { 
-    id: 'facility-4', 
-    name: 'PNQ/Dummy', 
-    type: 'RVP Facility', 
+  {
+    id: 'facility-4',
+    name: 'PNQ/Dummy',
+    type: 'RVP Facility',
     availableFunctions: ['RVP Facility'],
-    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RVP Facility'], 
-    address: '101 West Ln, Anytown', 
-    assignedHeadId: 'user-fh-rvp' 
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['RVP Facility'],
+    address: '101 West Ln, Anytown',
+    assignedHeadId: 'user-fh-rvp'
   },
-  { 
-    id: 'facility-5', 
-    name: 'Central Depot - FM Pickup', 
-    type: 'FM Pickup', 
+  {
+    id: 'facility-5',
+    name: 'Central Depot - FM Pickup',
+    type: 'FM Pickup',
     availableFunctions: ['FM Pickup'],
-    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'], 
-    address: '202 Center Blvd, Anytown' 
+    shipmentLeg: FACILITY_FUNCTION_TO_SHIPMENT_LEG['FM Pickup'],
+    address: '202 Center Blvd, Anytown'
   },
 ];
 
@@ -78,15 +78,15 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     id: 'req-1',
     facilityId: 'facility-1',
     facilityName: 'PNQ/KHR',
-    facilityFunctionContext: 'FM Pickup', // Updated from facilityType
+    facilityFunctionContext: 'FM Pickup',
     stressLevel: 'Route',
     routeId: 'route-fm-1',
     routeName: 'FM Route Alpha',
-    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
+    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 5,
-    reason: 'Space Stress', 
-    submittedByUserId: 'user-fh-fm', 
-    submittedByName: 'Parag', 
+    reason: 'Space Stress',
+    submittedByUserId: 'user-fh-fm',
+    submittedByName: 'Parag',
     submissionDate: new Date().toISOString(),
     status: 'Pending',
   },
@@ -94,35 +94,35 @@ export const MOCK_STRESS_REQUESTS: StressRequest[] = [
     id: 'req-2',
     facilityId: 'facility-2',
     facilityName: 'PNQ/CHK',
-    facilityFunctionContext: 'LM Delivery', // Updated from facilityType
+    facilityFunctionContext: 'LM Delivery',
     stressLevel: 'Subcluster',
     subclusterId: 'sc-south',
     subclusterName: 'South Subcluster',
-    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
+    startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 7,
-    reason: 'Space Stress', 
+    reason: 'Space Stress',
     submittedByUserId: 'user-ops-1',
-    submittedByName: 'Subham', 
-    submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), 
+    submittedByName: 'Subham',
+    submissionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'Approved',
-    adminApproverId: 'user-admin-1', 
-    adminComments: 'Approved due to critical space issues.', 
+    adminApproverId: 'user-admin-1',
+    adminComments: 'Approved due to critical space issues.',
     approvalDate: new Date().toISOString(),
   },
     {
     id: 'req-3',
     facilityId: 'facility-3',
     facilityName: 'DEL/PTD',
-    facilityFunctionContext: 'RTO/DTO', // Updated from facilityType
-    stressLevel: 'Facility', 
+    facilityFunctionContext: 'RTO/DTO',
+    stressLevel: 'Facility',
     startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     extensionDays: 3,
-    reason: 'Space Stress', 
-    submittedByUserId: 'user-fh-rto', 
-    submittedByName: 'Priya', 
+    reason: 'Manpower Stress',
+    submittedByUserId: 'user-fh-rto',
+    submittedByName: 'Priya',
     submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'Rejected',
-    adminApproverId: 'user-admin-1', 
+    adminApproverId: 'user-admin-1',
     adminComments: 'System outage resolved, stress marking not required.',
     approvalDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
