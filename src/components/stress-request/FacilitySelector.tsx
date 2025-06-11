@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,7 +29,7 @@ export default function FacilitySelector({ selectedFacilityId, onFacilityChange,
         <SelectContent>
           {facilities.map((facility: Facility) => (
             <SelectItem key={facility.id} value={facility.id}>
-              {facility.name} ({facility.type})
+              {facility.name}
             </SelectItem>
           ))}
         </SelectContent>
