@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, PlusCircle } from 'lucide-react';
+import { Building, PlusCircle, Edit } from 'lucide-react';
 
 export default function ManageFacilitiesPage() {
   const { currentRole, facilities } = useAppContext();
@@ -23,11 +23,21 @@ export default function ManageFacilitiesPage() {
     return null;
   }
 
+  const handleEditFacility = (facilityId: string) => {
+    router.push(`/dashboard/admin/facilities/${facilityId}/edit`);
+  };
+
+  const handleAddFacility = () => {
+    // Placeholder for add facility functionality
+    console.log("Add facility clicked");
+    // router.push('/dashboard/admin/facilities/new'); // Example future route
+  };
+
   return (
     <Card className="max-w-screen-xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-2xl font-headline">Manage Facilities</CardTitle>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleAddFacility}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Facility
         </Button>
       </CardHeader>
@@ -51,7 +61,9 @@ export default function ManageFacilitiesPage() {
                   <TableCell>{facility.shipmentLeg}</TableCell>
                   <TableCell>{facility.address}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEditFacility(facility.id)}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
