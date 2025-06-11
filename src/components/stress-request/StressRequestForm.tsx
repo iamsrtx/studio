@@ -312,6 +312,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Space Stress">Space Stress</SelectItem>
+                      <SelectItem value="Manpower Stress">Manpower Stress</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -329,4 +330,3 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
-

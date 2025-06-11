@@ -20,7 +20,7 @@ export const StressRequestSchema = z.object({
   startDate: z.date({ required_error: "Start date is required." })
     .min(new Date(new Date().setHours(0,0,0,0)), "Start date cannot be in the past."),
   extensionDays: z.coerce.number().min(1, "Extension days must be at least 1."), // Max validation handled in form
-  reason: z.enum(["Space Stress"], { // Updated enum
+  reason: z.enum(["Space Stress", "Manpower Stress"], { 
     required_error: "Stress reason is required.",
     invalid_type_error: "Stress reason is required."
   }),
@@ -56,4 +56,3 @@ export const AdminSettingsSchema = z.object({
 });
 
 export type AdminSettingsFormData = z.infer<typeof AdminSettingsSchema>;
-
