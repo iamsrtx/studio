@@ -6,10 +6,11 @@ export type ShipmentLeg = 'Seller Side' | 'Buyer Side' | 'RTO' | 'Reverse';
 // Renamed from FacilityType
 export type FacilityFunction = 'FM Pickup' | 'LM Delivery' | 'RTO/DTO' | 'RVP Facility';
 
-export type StressLevelFmPickup = 'Route' | 'Subcluster' | 'Facility';
-export type StressLevelLmDelivery = 'Subcluster' | 'Facility' | 'Pincode'; // Added Pincode
-export type StressLevelRtoDto = 'Route' | 'Facility';
-export type StressLevelRvpFacility = 'Facility';
+// Updated to include 'Pincode' where applicable, aligning with STRESS_LEVELS_MAP
+export type StressLevelFmPickup = 'Facility' | 'Route' | 'Pincode';
+export type StressLevelLmDelivery = 'Facility' | 'Subcluster' | 'Pincode';
+export type StressLevelRtoDto = 'Facility' | 'Route' | 'Pincode';
+export type StressLevelRvpFacility = 'Facility' | 'Pincode';
 
 export type StressLevel = StressLevelFmPickup | StressLevelLmDelivery | StressLevelRtoDto | StressLevelRvpFacility;
 
