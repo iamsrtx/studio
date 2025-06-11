@@ -33,7 +33,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Local state for UI elements that might not directly map to form fields or need styling based on selection
   const [selectedFacilityForDisplay, setSelectedFacilityForDisplay] = useState<Facility | undefined>(undefined);
 
 
@@ -47,7 +46,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
-      reason: "Space Stress",
+      reason: undefined, // Set initial reason to undefined to match Zod enum for required
     },
   });
 
@@ -55,17 +54,14 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
   const watchedFacilityFunctionContext = form.watch('facilityFunctionContext');
   const watchedStressLevel = form.watch('stressLevel');
   const watchedExtensionDays = form.watch('extensionDays');
-  // const watchedReason = form.watch('reason'); // Not actively used in effects
 
-  // Derive UI-specific data directly from watched form values for more synchronous updates
   const currentFacilityForUI = watchedFacilityId ? getFacilityById(watchedFacilityId) : undefined;
   const currentAvailableFunctionsForUI = currentFacilityForUI?.availableFunctions || [];
 
 
-// Effect for when facilityId changes (user selects a facility or form initializes for FacilityHead)
 useEffect(() => {
     const facility = watchedFacilityId ? getFacilityById(watchedFacilityId) : undefined;
-    setSelectedFacilityForDisplay(facility); // Update local UI state for displaying facility info
+    setSelectedFacilityForDisplay(facility);
 
     const newAvailableFunctions = facility?.availableFunctions || [];
     
@@ -81,9 +77,6 @@ useEffect(() => {
       form.setValue('facilityFunctionContext', determinedFacilityFunction, { shouldDirty: true });
     }
     
-    // Always reset stressLevel when facilityId changes, as its options depend on facilityFunctionContext,
-    // which is determined by facilityId.
-    // The subsequent useEffect for watchedFacilityFunctionContext will handle auto-selecting stressLevel if applicable.
     if (form.getValues('stressLevel') !== undefined) {
       form.setValue('stressLevel', undefined, { shouldDirty: true });
     }
@@ -91,7 +84,6 @@ useEffect(() => {
 }, [watchedFacilityId, getFacilityById, form]);
 
 
-// Effect for when facilityFunctionContext changes
 useEffect(() => {
     let newStressLevelToSet: StressLevel | undefined = undefined;
     let needsStressLevelValidation = false;
@@ -103,20 +95,18 @@ useEffect(() => {
       } else {
         const currentStressLevel = form.getValues('stressLevel');
         if (currentStressLevel && (!stressOptions || !stressOptions.find(opt => opt.value === currentStressLevel))) {
-          newStressLevelToSet = undefined; // Reset if current is invalid for new context
+          newStressLevelToSet = undefined; 
         }
-        // If currentStressLevel is undefined or valid, and newStressLevelToSet is undefined (multiple options), no change from here
       }
     } else {
-      newStressLevelToSet = undefined; // No function context, so no stress level
+      newStressLevelToSet = undefined; 
     }
 
     if (form.getValues('stressLevel') !== newStressLevelToSet) {
-      form.setValue('stressLevel', newStressLevelToSet, { shouldValidate: true, shouldDirty: true });
+      form.setValue('stressLevel', newStressLevelToSet, { shouldDirty: true });
       needsStressLevelValidation = true;
     }
 
-    // Reset routeId and subclusterId as their relevance depends on stressLevel, which changed or might change.
     if (form.getValues('routeId') !== undefined) {
       form.setValue('routeId', undefined, {shouldDirty: true});
     }
@@ -124,9 +114,10 @@ useEffect(() => {
       form.setValue('subclusterId', undefined, {shouldDirty: true});
     }
 
-    if (form.formState.dirtyFields.facilityFunctionContext || !watchedFacilityFunctionContext) {
-      form.trigger('facilityFunctionContext');
-    }
+    // Removed explicit trigger for facilityFunctionContext to avoid premature "required" error
+    // if (form.formState.dirtyFields.facilityFunctionContext || !watchedFacilityFunctionContext) {
+    //   form.trigger('facilityFunctionContext');
+    // }
     if (needsStressLevelValidation || (form.formState.dirtyFields.stressLevel && !watchedFacilityFunctionContext)) {
        form.trigger('stressLevel');
     }
@@ -134,7 +125,6 @@ useEffect(() => {
 }, [watchedFacilityFunctionContext, form]);
 
 
-// Effect for when stressLevel changes (e.g., user selection or auto-population)
 useEffect(() => {
     const stressLevelValue = watchedStressLevel as string | undefined;
     const needsRoute = stressLevelValue && stressLevelValue.toLowerCase().includes('route');
@@ -142,16 +132,15 @@ useEffect(() => {
 
     if (!needsRoute && form.getValues('routeId')) {
       form.setValue('routeId', undefined);
-      if(form.formState.dirtyFields.routeId) form.clearErrors('routeId'); // Clear errors if field becomes hidden
+      if(form.formState.dirtyFields.routeId) form.clearErrors('routeId'); 
     }
     if (!needsSubcluster && form.getValues('subclusterId')) {
       form.setValue('subclusterId', undefined);
-      if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId'); // Clear errors
+      if(form.formState.dirtyFields.subclusterId) form.clearErrors('subclusterId'); 
     }
 }, [watchedStressLevel, form]);
 
 
-// Effect for maxExtensionDays validation
 useEffect(() => {
     if (watchedExtensionDays > maxExtensionDays) {
       form.setError('extensionDays', {
@@ -168,10 +157,9 @@ useEffect(() => {
     form.setValue('facilityId', facilityId, { shouldValidate: true, shouldDirty: true });
   };
 
-  // Note: handleStressLevelChange is directly handled by StressLevelSelector's field.onChange via Controller
 
   const onSubmit = async (data: StressRequestFormData) => {
-    if (!currentUser || !currentFacilityForUI || !data.facilityFunctionContext) { // Use currentFacilityForUI
+    if (!currentUser || !currentFacilityForUI || !data.facilityFunctionContext) { 
       toast({ title: "Error", description: "User, facility, or facility function not found.", variant: "destructive" });
       return;
     }
@@ -191,7 +179,7 @@ useEffect(() => {
 
       const requestPayload = {
         facilityId: data.facilityId,
-        facilityName: currentFacilityForUI.name, // Use currentFacilityForUI
+        facilityName: currentFacilityForUI.name, 
         facilityFunctionContext: data.facilityFunctionContext,
         stressLevel: data.stressLevel,
         routeId: data.routeId,
@@ -216,10 +204,9 @@ useEffect(() => {
             subclusterId: undefined,
             startDate: undefined,
             extensionDays: 1,
-            reason: "Space Stress",
+            reason: undefined, // Reset reason to undefined
         });
         
-        // Update local display state after reset if it's a facility head
         if (facilityHeadAssignedId) {
             setSelectedFacilityForDisplay(getFacilityById(facilityHeadAssignedId));
         } else {
@@ -314,9 +301,9 @@ useEffect(() => {
               render={({ field }) => (
                 <FormItem>
                   <StressLevelSelector
-                    facilityFunction={watchedFacilityFunctionContext} // Correctly depends on the watched form value
+                    facilityFunction={watchedFacilityFunctionContext} 
                     selectedStressLevel={field.value}
-                    onStressLevelChange={(value) => field.onChange(value as StressLevel)} // RHF handles undefined correctly
+                    onStressLevelChange={(value) => field.onChange(value as StressLevel)} 
                     disabled={!currentFacilityForUI || !watchedFacilityFunctionContext}
                   />
                   <FormMessage />
@@ -407,7 +394,7 @@ useEffect(() => {
                         <ReasonSuggestion
                             reason={field.value || ''}
                             onReasonChange={field.onChange}
-                            facilityFunction={watchedFacilityFunctionContext} // Correctly depends on watched form value
+                            facilityFunction={watchedFacilityFunctionContext} 
                             disabled={!watchedFacilityFunctionContext}
                         />
                         <FormMessage/>
