@@ -13,13 +13,14 @@ import FacilitySelector from './FacilitySelector';
 import StressLevelSelector from './StressLevelSelector';
 import RouteSelector from './RouteSelector';
 import SubclusterSelector from './SubclusterSelector';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from '@/contexts/AppContext';
 import type { Facility, FacilityType, StressLevel, User } from '@/lib/types';
 import { StressRequestSchema, type StressRequestFormData } from '@/zod-schemas';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
 import { Label } from "@/components/ui/label";
+import { STRESS_LEVELS_MAP } from '@/lib/constants'; // Added import
 
 interface StressRequestFormProps {
   onSubmitSuccess?: () => void;
@@ -40,7 +41,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       subclusterId: undefined,
       startDate: undefined,
       extensionDays: 1,
-      reason: "Space Stress", 
+      reason: "Space Stress",
     },
   });
 
@@ -57,6 +58,20 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     }
   }, [currentUser, getFacilityById, form]);
 
+  // Auto-populate stress level if only one option is available for the selected facility type
+  useEffect(() => {
+    if (selectedFacility && selectedFacility.type) {
+      const stressOptions = STRESS_LEVELS_MAP[selectedFacility.type];
+      if (stressOptions && stressOptions.length === 1) {
+        if (form.getValues('stressLevel') !== stressOptions[0].value) {
+          form.setValue('stressLevel', stressOptions[0].value);
+          // Optionally trigger validation if needed, e.g., form.trigger('stressLevel')
+        }
+      }
+    }
+  }, [selectedFacility, form]);
+
+
   useEffect(() => {
     const stressLevelValue = watchedStressLevel as string | undefined;
     if (!stressLevelValue || !stressLevelValue.toLowerCase().includes('route')) {
@@ -69,7 +84,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     }
   }, [watchedStressLevel, form]);
 
-  // Effect to validate extensionDays against admin-set maxExtensionDays
   useEffect(() => {
     if (watchedExtensionDays > maxExtensionDays) {
       form.setError('extensionDays', {
@@ -77,7 +91,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
         message: `Extension days cannot exceed the admin-set limit of ${maxExtensionDays}.`
       });
     } else if (form.formState.errors.extensionDays?.type === 'manual' && watchedExtensionDays <= maxExtensionDays) {
-      // Clear only if it was a manual error previously set by this logic and now it's valid
       form.clearErrors('extensionDays');
     }
   }, [watchedExtensionDays, maxExtensionDays, form]);
@@ -87,12 +100,13 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     const facility = getFacilityById(facilityId);
     setSelectedFacility(facility);
     form.setValue('facilityId', facilityId);
-    form.setValue('stressLevel', undefined);
+    form.setValue('stressLevel', undefined); // Reset stress level
     form.setValue('routeId', undefined);
     form.setValue('subclusterId', undefined);
     form.clearErrors('stressLevel');
     form.clearErrors('routeId');
     form.clearErrors('subclusterId');
+    // The useEffect watching selectedFacility will handle auto-population if applicable
   };
 
   const handleStressLevelChange = (stressLevel: StressLevel | undefined) => {
@@ -114,7 +128,6 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
       toast({ title: "Error", description: "User or facility not found.", variant: "destructive" });
       return;
     }
-     // Final check before submission, though useEffect should handle this reactively
     if (data.extensionDays > maxExtensionDays) {
         form.setError('extensionDays', {
             type: 'manual',
@@ -155,7 +168,19 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
             extensionDays: 1,
             reason: "Space Stress",
         });
-        if (currentUser?.role !== 'FacilityHead') setSelectedFacility(undefined);
+        if (currentUser?.role !== 'FacilityHead') {
+            setSelectedFacility(undefined); // Reset facility for Ops user
+        } else if (currentUser.assignedFacilityId) {
+            // For FacilityHead, re-trigger auto-population if their assigned facility has only one stress level
+            const assignedFacility = getFacilityById(currentUser.assignedFacilityId);
+            if (assignedFacility && assignedFacility.type) {
+                const stressOptions = STRESS_LEVELS_MAP[assignedFacility.type];
+                if (stressOptions && stressOptions.length === 1) {
+                    form.setValue('stressLevel', stressOptions[0].value);
+                }
+            }
+        }
+
 
         if (onSubmitSuccess) onSubmitSuccess();
       } else {
@@ -286,7 +311,7 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
                       {...field}
                       onChange={e => field.onChange(parseInt(e.target.value,10) || 0)}
                       min={1}
-                      max={maxExtensionDays} // HTML5 validation
+                      max={maxExtensionDays}
                       className="h-10"
                     />
                   </FormControl>
@@ -330,3 +355,4 @@ export default function StressRequestForm({ onSubmitSuccess }: StressRequestForm
     </Card>
   );
 }
+
